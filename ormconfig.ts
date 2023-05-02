@@ -1,4 +1,9 @@
 import path from "path";
+// почему в твоем проекте дотэнв работал без испорта????
+import dotenv from "dotenv";
+dotenv.config();
+
+console.log(process.env.DB_NAME);
 export = {
   type: "postgres",
   host: process.env.DB_URL,

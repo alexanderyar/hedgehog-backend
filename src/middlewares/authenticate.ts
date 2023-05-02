@@ -19,10 +19,10 @@ export const authenticate: RequestHandler = async (req, res, next) => {
     // const user = await User.findById(id);
     // будем тут юзера из базы забирать, но из нашей
 
-    if (!user || !user.token.includes(token)) {
-      throw new Unauthorized();
-    }
-    req.user = user;
+    // if (!user || !user.token.includes(token)) {
+    //   throw new Unauthorized();
+    // }
+    // req.user = user;
     next();
   } catch {
     throw new Unauthorized();
