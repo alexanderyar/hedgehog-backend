@@ -1,5 +1,4 @@
 import path from "path";
-// почему в твоем проекте дотэнв работал без испорта????
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -12,7 +11,7 @@ export = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   // change BEFORE PRODUCTION!!!!
-  synchronize: true,
+  synchronize: process.env.DB_SYNCHRONIZE,
   ssl: process.env.DB_USE_SSL,
   logging: process.env.ENV === "dev",
 
