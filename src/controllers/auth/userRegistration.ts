@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
-
+import { uuid } from "uuidv4";
 const bcrypt = require("bcrypt");
 
 const { BASE_URL } = process.env;
@@ -18,7 +18,7 @@ export const userRegistration: RequestHandler = async (req, res) => {
   }
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const verificationToken: string = "qwertyuioop1231231";
+  const verificationToken: string = uuid();
 
   ///// !!!!!
   const result = await User.create({
@@ -33,7 +33,7 @@ export const userRegistration: RequestHandler = async (req, res) => {
   const verificationEmail = {
     to: email,
     subject: "Verify your email in order to use your profile",
-    html: `<a target="_blank" href="${BASE_URL}/users//verify/${verificationToken}">Click to verify your email</a>`,
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationToken}">Click to verify your email</a>`,
   };
 
   await sendEmail(verificationEmail);

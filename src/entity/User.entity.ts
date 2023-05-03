@@ -50,6 +50,9 @@ export class User extends BaseEntity {
   @Column()
   verificationToken: string;
 
+  @Column({ default: false, nullable: true })
+  verifiedEmail: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

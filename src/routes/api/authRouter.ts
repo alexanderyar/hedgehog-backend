@@ -17,4 +17,6 @@ router.post(
   ctrl.userRegistration
 );
 
+router.get("/verify/:verificationToken", ctrl.userEmailVerification);
+
 export default router;
