@@ -1,3 +1,7 @@
-import { authenticate } from "./authenticate";
+// import { authenticate } from "./authenticate";
+import { validateBody } from "./validateBody";
 
-export { authenticate };
+export {
+  // authenticate,
+  validateBody,
+};
