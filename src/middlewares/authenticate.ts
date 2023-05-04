@@ -5,8 +5,6 @@ import { Unauthorized } from "http-errors";
 import { User } from "../entity/User.entity";
 const jwt = require("jsonwebtoken");
 
-// пройслойка аутентификации. подкорректировать немного и будет ок наверное
-
 const { SECRET_KEY } = process.env;
 
 export const authenticate = async (

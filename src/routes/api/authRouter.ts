@@ -21,4 +21,8 @@ router.post("/verify", ctrl.userResendVerificationEmail);
 // router.post("/login", validateBody(schemasJoi.loginSchema), ctrl.login);
 router.post("/login", ctrl.userLogin);
 
+router.get("/current", authenticate, ctrl.userGetCurrent);
+
+router.post("/logout", authenticate, ctrl.userLogout);
+
 export default router;

@@ -1,17 +1,17 @@
 import { ctrlWrapper } from "../../helpers/ctrlWrapper";
 
-// import { userCurrent } from "./userCurrent";
+import { userGetCurrent } from "./userGetCurrent";
 import { userEmailVerification } from "./userEmailVerification";
 import { userLogin } from "./userLogin";
-// import { userLogout } from "./userLogout";
+import { userLogout } from "./userLogout";
 import { userRegistration } from "./userRegistration";
 import { userResendVerificationEmail } from "./userResendVerificationEmail";
 
-// whule importing the object should be called somehow
+// !! while importing the object should be called somehow
 export default {
-  // userCurrent: ctrlWrapper(userCurrent),
+  userGetCurrent: ctrlWrapper(userGetCurrent),
   userLogin: ctrlWrapper(userLogin),
-  // userLogout: ctrlWrapper(userLogout),
+  userLogout: ctrlWrapper(userLogout),
   userRegistration: ctrlWrapper(userRegistration),
   userEmailVerification: ctrlWrapper(userEmailVerification),
   userResendVerificationEmail: ctrlWrapper(userResendVerificationEmail),
