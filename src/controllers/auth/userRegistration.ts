@@ -4,7 +4,7 @@ import { uuid } from "uuidv4";
 const bcrypt = require("bcrypt");
 
 const { BASE_URL } = process.env;
-// import { nanoid } from "nanoid";
+
 const { sendEmail } = require("../../helpers");
 
 const { BadRequest, Conflict } = require("http-errors");
@@ -20,7 +20,6 @@ export const userRegistration: RequestHandler = async (req, res) => {
 
   const verificationToken: string = uuid();
 
-  ///// !!!!!
   const result = await User.create({
     ...req.body,
     // overriding password from req.user with hashedPassword

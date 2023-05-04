@@ -17,4 +17,8 @@ router.get("/verify/:verificationToken", ctrl.userEmailVerification);
 
 router.post("/verify", ctrl.userResendVerificationEmail);
 
+// Joi validation is on hold until Kostya confirms
+// router.post("/login", validateBody(schemasJoi.loginSchema), ctrl.login);
+router.post("/login", ctrl.userLogin);
+
 export default router;

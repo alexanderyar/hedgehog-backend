@@ -1,39 +1,37 @@
-// import { RequestHandler } from "express";
+import { RequestHandler } from "express";
 
-// const { User } = require("../../models/user");
-// const { BadRequest, Unauthorized } = require("http-errors");
-// const { JoiSchemas } = require("../../models/user");
-// const { SECRET_KEY } = process.env;
-// const jwt = require("jsonwebtoken");
-// const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+import { User } from "../../entity/User.entity";
+import { Unauthorized } from "http-errors";
 
-// export const userLogin: RequestHandler = async (req, res) => {
-//   const { error } = JoiSchemas.userLoginJoiSchema.validate(req.body);
-//   if (error) {
-//     throw new BadRequest("Помилка від Joi або іншої бібліотеки валідації");
-//   }
-//   const { email, password } = req.body;
-//   const user = await User.findOne({ email });
-//   if (!user) {
-//     throw new Unauthorized("E-mail or password is wrong");
-//   }
-//   const passwordCompare = await bcrypt.compare(password, user.password);
-//   if (!passwordCompare) {
-//     throw new Unauthorized("E-mail or password is wrong");
-//   }
+const { SECRET_KEY } = process.env;
 
-//   const payload = { id: user._id };
-//   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "10h" });
+export const userLogin: RequestHandler = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOneBy({ email });
+  if (!user) throw new Unauthorized("User data is not valid");
+  if (!user.verifiedEmail) throw new Unauthorized("Email not verified");
 
-//   await User.findByIdAndUpdate(user._id, { token });
+  const comparePass = await bcrypt.compare(password, user.password);
+  if (!comparePass) new Unauthorized("Email or password is wrong");
 
-//   res.status(201).json({
-//     token: token,
-//     user: {
-//       email: user.email,
-//       subscription: user.subscription,
-//     },
-//   });
-// };
+  const payload = { id: user.id };
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "7d" });
 
-// // module.exports = userLogin
+  // ts doesn't allow to perform .push on a string
+  // user.token.push(token);
+  user.token = token;
+
+  await User.update(user.id, { token: user.token });
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      login: user.login,
+      email: user.email,
+    },
+  });
+};
+
+// module.exports = login;
