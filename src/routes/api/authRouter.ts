@@ -4,12 +4,8 @@ const router = express.Router();
 import ctrl from "../../controllers/auth/";
 
 import { userRegistrationJoiSchema } from "../../models/user";
-import { Schema } from "joi";
 
-const {
-  // authenticate,
-  validateBody,
-} = require("../../middlewares");
+const { authenticate, validateBody } = require("../../middlewares");
 
 router.post(
   "/register",
@@ -18,5 +14,7 @@ router.post(
 );
 
 router.get("/verify/:verificationToken", ctrl.userEmailVerification);
+
+router.post("/verify", ctrl.userResendVerificationEmail);
 
 export default router;

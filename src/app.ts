@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
+dotenv.config();
 import express, { NextFunction, Request, Errback } from "express";
 import cors from "cors";
 import morgan from "morgan";
-dotenv.config();
+
 import AppDataSource from "./dataSource";
 
 import authRouter from "./routes/api/authRouter";

@@ -5,7 +5,7 @@ import { userEmailVerification } from "./userEmailVerification";
 // import { userLogin } from "./userLogin";
 // import { userLogout } from "./userLogout";
 import { userRegistration } from "./userRegistration";
-// import { userResendVerificationEmail } from "./userResendVerificationEmail";
+import { userResendVerificationEmail } from "./userResendVerificationEmail";
 
 // whule importing the object should be called somehow
 export default {
@@ -14,5 +14,5 @@ export default {
   // userLogout: ctrlWrapper(userLogout),
   userRegistration: ctrlWrapper(userRegistration),
   userEmailVerification: ctrlWrapper(userEmailVerification),
-  // userResendVerificationEmail: ctrlWrapper(userResendVerificationEmail),
+  userResendVerificationEmail: ctrlWrapper(userResendVerificationEmail),
 };
