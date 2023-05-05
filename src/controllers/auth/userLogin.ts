@@ -11,7 +11,7 @@ export const userLogin: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOneBy({ email });
   if (!user) throw new Unauthorized("User data is not valid");
-  if (!user.verifiedEmail) throw new Unauthorized("Email not verified");
+  if (!user.verified_email) throw new Unauthorized("Email not verified");
 
   const comparePass = await bcrypt.compare(password, user.password);
   if (!comparePass) new Unauthorized("Email or password is wrong");

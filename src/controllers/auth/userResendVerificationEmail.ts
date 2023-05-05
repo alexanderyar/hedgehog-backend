@@ -12,13 +12,13 @@ export const userResendVerificationEmail: RequestHandler = async (req, res) => {
 
   if (!user) throw new NotFound("User not found");
 
-  if (user.verifiedEmail)
+  if (user.verified_email)
     throw new BadRequest("Verification has already been passed");
 
   const verifyEmail = {
     to: email,
     subject: "Resending email verification",
-    html: verifyMail(user.verificationToken),
+    html: verifyMail(user.verification_token),
   };
 
   await sendEmail(verifyEmail);

@@ -8,14 +8,14 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   if (!verificationToken) {
     throw new NotFound(" valid verification TOKEN has been NOT received");
   }
-  const user = await User.findOneBy({ verificationToken });
+  const user = await User.findOneBy({ verification_token: verificationToken });
   if (!user) {
     throw new NotFound("No such user in DB");
   }
 
   await User.update(user.id, {
-    verificationToken: "",
-    verifiedEmail: true,
+    verification_token: "",
+    verified_email: true,
   });
 
   // sucessful verification gives the user TOKEN so he doesn't need to LOGIN once again
