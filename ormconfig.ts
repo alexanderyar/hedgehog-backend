@@ -19,7 +19,7 @@ export = {
   //!!!!!
   // проверить настройки ниже
   // !!!!
-  migrations: ["src/migrations/**/*.ts"],
+  migrations: ["migrations/**/*.ts"],
   subscribers: ["src/subscriber/**/*.ts"],
   cli: {
     entitiesDir: "src/entity",

@@ -7,15 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-
-// later move to a separate file for enums, types, interfaces? @K
-export enum userRole {
-  customer,
-  supplier, //Do we need it?
-  supply_manager,
-  sales_manager,
-  admin,
-}
+import UserRoles from "../enums/UserRole";
 
 @Entity("user")
 export class User extends BaseEntity {
@@ -24,10 +16,10 @@ export class User extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: userRole,
-    default: userRole.customer,
+    enum: UserRoles,
+    default: UserRoles.customer,
   })
-  role: userRole;
+  role: UserRoles;
 
   @Column({
     default: true,
@@ -48,10 +40,10 @@ export class User extends BaseEntity {
   token: string;
 
   @Column()
-  verificationToken: string;
+  verification_token: string;
 
   @Column({ default: false })
-  verifiedEmail: boolean;
+  verified_email: boolean;
 
   @CreateDateColumn()
   created_at: Date;

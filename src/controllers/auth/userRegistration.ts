@@ -24,7 +24,7 @@ export const userRegistration: RequestHandler = async (req, res) => {
     ...req.body,
     // overriding password from req.user with hashedPassword
     password: hashedPassword,
-    verificationToken: verificationToken,
+    verification_token: verificationToken,
   });
 
   await result.save();
