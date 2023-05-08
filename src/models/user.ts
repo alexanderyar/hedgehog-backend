@@ -1,5 +1,5 @@
 import Joi, { Schema } from "joi";
-import { userRole } from "../entity/User.entity";
+import userRole from "../enums/UserRole";
 
 export const userRegistrationJoiSchema: Schema = Joi.object({
   login: Joi.string().required(),

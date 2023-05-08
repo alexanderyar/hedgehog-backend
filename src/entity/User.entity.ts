@@ -5,9 +5,10 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
+  UpdateDateColumn, OneToMany,
 } from "typeorm";
 import UserRoles from "../enums/UserRole";
+import Supplier from "./Supplier.entity";
 
 @Entity("user")
 export class User extends BaseEntity {
@@ -50,4 +51,7 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => Supplier, (supplier) => supplier.manager)
+  suppliers: Supplier[]
 }

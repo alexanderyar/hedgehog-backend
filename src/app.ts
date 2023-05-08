@@ -8,6 +8,7 @@ import AppDataSource from "./dataSource";
 
 import authRouter from "./routes/api/authRouter";
 import { Response } from "@sendgrid/helpers/classes";
+import router from "./routes/api";
 
 const app = express();
 const port = parseInt(process.env.PORT || "3001");
@@ -18,7 +19,7 @@ AppDataSource.initialize()
     app.use(cors());
     app.use(express.json());
 
-    app.use("/api/auth", authRouter);
+    app.use("/api", router);
 
     app.use((req, res) => {
       res.status(404).json({ message: "Not found" });
