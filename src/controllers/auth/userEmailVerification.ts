@@ -1,8 +1,10 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
 import { Session } from "../../entity/Session.entity";
+import { NotFound } from "http-errors";
+import { tokenLoader } from "../../helpers/tokenLoader";
+import { refreshTokenLoader } from "../../helpers/refreshTokenLoader";
 const jwt = require("jsonwebtoken");
-const { NotFound } = require("http-errors");
 
 export const userEmailVerification: RequestHandler = async (req, res) => {
   const { verificationToken } = req.params;
@@ -20,19 +22,22 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   });
 
   // sucessful verification gives the user TOKEN so he doesn't need to LOGIN once again
-  const payload = { id: user.id, email: user.email, name: user.login };
-  const token: string = jwt.sign(payload, process.env.SECRET_KEY, {
-    expiresIn: "7d",
-  });
+  const token = tokenLoader(user.id, user.email, user.login);
 
-  const refresh_token_payload = { id: user.id };
-  const refresh_token = jwt.sign(
-    refresh_token_payload,
-    process.env.SECRET_KEY,
-    {
-      expiresIn: "20d",
-    }
-  );
+  // const payload = { id: user.id, email: user.email, name: user.login };
+  // const token: string = jwt.sign(payload, process.env.SECRET_KEY, {
+  //   expiresIn: "7d",
+  // });
+
+  const refresh_token = refreshTokenLoader(user.id);
+  // const refresh_token_payload = { id: user.id };
+  // const refresh_token = jwt.sign(
+  //   refresh_token_payload,
+  //   process.env.SECRET_KEY,
+  //   {
+  //     expiresIn: "20d",
+  //   }
+  // );
 
   // user.token = token;
   // user.refresh_token = refresh_token;
