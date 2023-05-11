@@ -23,6 +23,8 @@ router.post("/login", ctrl.userLogin);
 
 router.get("/current", authenticate, ctrl.userGetCurrent);
 
+router.post("/refresh_token/", ctrl.userRefreshToken);
+
 router.post("/logout", authenticate, ctrl.userLogout);
 
 export default router;

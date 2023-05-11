@@ -2,8 +2,9 @@
 import { RequestHandler } from "express";
 
 export const userGetCurrent: RequestHandler = async (req, res) => {
-  const { id, login, email } = req.user;
-  res.json({ id, login, email });
+  const { id, name, email } = req.user;
+
+  res.json({ user: { id, name, email } });
 };
 
 // module.exports = getCurrent;

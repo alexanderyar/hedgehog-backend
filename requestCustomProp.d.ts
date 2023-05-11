@@ -7,9 +7,10 @@ declare namespace Express {
 }
 
 interface IUser {
-  login: string;
-  email: string;
+  name?: string;
+  email?: string;
   id: number;
-  // password?: string;
   role?: any;
+  country?: string;
+  telephone_number?: string;
 }

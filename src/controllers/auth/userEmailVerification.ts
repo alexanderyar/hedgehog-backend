@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
+import { Session } from "../../entity/Session.entity";
 const jwt = require("jsonwebtoken");
 const { NotFound } = require("http-errors");
 
@@ -19,28 +20,45 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   });
 
   // sucessful verification gives the user TOKEN so he doesn't need to LOGIN once again
-  const payload = { id: user.id };
-  const token = jwt.sign(payload, process.env.SECRET_KEY, {
+  const payload = { id: user.id, email: user.email, name: user.login };
+  const token: string = jwt.sign(payload, process.env.SECRET_KEY, {
     expiresIn: "7d",
   });
 
-  // это ок? прямое присваивание?
-  user.token = token;
+  const refresh_token_payload = { id: user.id };
+  const refresh_token = jwt.sign(
+    refresh_token_payload,
+    process.env.SECRET_KEY,
+    {
+      expiresIn: "20d",
+    }
+  );
 
-  await User.update(user.id, { token: user.token });
+  // user.token = token;
+  // user.refresh_token = refresh_token;
 
-  res.status(200).json({
-    status: "success",
-    code: 200,
-    data: {
-      message: "Verification successful",
-    },
+  // await User.update(user.id, { token: user.token });
+
+  const result = await Session.create({
+    token: token,
+    refresh_token: refresh_token,
+    user,
   });
 
+  await result.save();
+
+  // res.status(200).json({
+  //   status: "success",
+  //   code: 200,
+  //   data: {
+  //     message: "Verification successful",
+  //   },
+  // });
+
   // when we have front-end, we'll use this approach
-  //   res.redirect(
-  //     `${process.env.FRONTEND_URL}?token=${token}&id=${user.id}&login=${user.login}&email=${user.email}`
-  //   );
+  res.redirect(
+    `${process.env.FRONTEND_URL}?token=${token}&refresh_token=${refresh_token}&id=${user.id}&name=${user.login}&email=${user.email}`
+  );
 };
 
 // module.exports = userEmailVerification;

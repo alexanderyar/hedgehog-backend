@@ -3,6 +3,8 @@ import { RequestHandler } from "express";
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 import { User } from "../../entity/User.entity";
+import { Session } from "../../entity/Session.entity";
+
 import { Unauthorized } from "http-errors";
 
 const { SECRET_KEY } = process.env;
@@ -16,22 +18,36 @@ export const userLogin: RequestHandler = async (req, res) => {
   const comparePass = await bcrypt.compare(password, user.password);
   if (!comparePass) new Unauthorized("Email or password is wrong");
 
-  const payload = { id: user.id };
+  const payload = { id: user.id, email: user.email, name: user.login };
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "7d" });
 
-  // ts doesn't allow to perform .push on a string
-  // user.token.push(token);
-  user.token = token;
+  const refresh_token_payload = { id: user.id };
+  const refresh_token = jwt.sign(refresh_token_payload, SECRET_KEY, {
+    expiresIn: "20d",
+  });
 
-  await User.update(user.id, { token: user.token });
+  // user.token = token;
+  // user.refresh_token = refresh_token;
+
+  // await User.update(user.id, { token: user.token });
+
+  const result = await Session.create({
+    token: token,
+    refresh_token: refresh_token,
+    user,
+  });
+
   res.json({
     token,
+    refresh_token,
     user: {
       id: user.id,
       login: user.login,
       email: user.email,
     },
   });
+
+  await result.save();
 };
 
 // module.exports = login;
