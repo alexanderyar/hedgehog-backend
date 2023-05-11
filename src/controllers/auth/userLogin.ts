@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 const jwt = require("jsonwebtoken");
 import { User } from "../../entity/User.entity";
 import { Session } from "../../entity/Session.entity";

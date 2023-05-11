@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
 import { uuid } from "uuidv4";
 import { verifyMail } from "../../helpers/emails";
-const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 
 const { BASE_URL } = process.env;
 
