@@ -6,8 +6,7 @@ import { tokenLoader } from "../../helpers/tokenLoader";
 import { refreshTokenLoader } from "../../helpers/refreshTokenLoader";
 
 // while importing using es6 syntax line 17 doesn't want to work at all;
-const jwt = require("jsonwebtoken");
-// import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 
 export const userRefreshToken: RequestHandler = async (req, res) => {
   const { refresh_token } = req.body;
@@ -16,7 +15,7 @@ export const userRefreshToken: RequestHandler = async (req, res) => {
     throw new NotFound(" valid verification TOKEN has been NOT received");
   }
 
-  const { id } = jwt.verify(refresh_token, process.env.SECRET_KEY);
+  const { id } = jwt.verify(refresh_token, process.env.SECRET_KEY) as JwtPayload;
 
   if (!id) {
     throw new BadRequest("refresh token has been expired. Please log in");

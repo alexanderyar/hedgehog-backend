@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
+import configDefaultEnv from "./defaultEnv";
+configDefaultEnv();
 import express, { NextFunction, Request, Errback } from "express";
 import cors from "cors";
 import morgan from "morgan";

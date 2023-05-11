@@ -1,10 +1,9 @@
-/// <reference path="../../requestCustomProp.d.ts" />
 import { NextFunction, Request, Response } from "express";
 import { Unauthorized, Conflict, BadRequest } from "http-errors";
 
 import { User } from "../entity/User.entity";
 import { Session } from "../entity/Session.entity";
-const jwt = require("jsonwebtoken");
+import jwt, {JwtPayload} from 'jsonwebtoken';
 
 const { SECRET_KEY } = process.env;
 
@@ -20,7 +19,7 @@ export const authenticate = async (
   }
 
   try {
-    const { id, email, name } = jwt.verify(token, SECRET_KEY);
+    const { id, email, name } = jwt.verify(token, SECRET_KEY) as JwtPayload;
 
     const userVerification = await Session.findOne({
       where: { token: token },

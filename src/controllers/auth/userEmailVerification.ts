@@ -4,7 +4,6 @@ import { Session } from "../../entity/Session.entity";
 import { NotFound } from "http-errors";
 import { tokenLoader } from "../../helpers/tokenLoader";
 import { refreshTokenLoader } from "../../helpers/refreshTokenLoader";
-const jwt = require("jsonwebtoken");
 
 export const userEmailVerification: RequestHandler = async (req, res) => {
   const { verificationToken } = req.params;
