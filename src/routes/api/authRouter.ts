@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 import ctrl from "../../controllers/auth/";
@@ -22,6 +22,8 @@ router.post("/verify", ctrl.userResendVerificationEmail);
 router.post("/login", ctrl.userLogin);
 
 router.get("/current", authenticate, ctrl.userGetCurrent);
+
+router.post("/refresh_token/", ctrl.userRefreshToken);
 
 router.post("/logout", authenticate, ctrl.userLogout);
 

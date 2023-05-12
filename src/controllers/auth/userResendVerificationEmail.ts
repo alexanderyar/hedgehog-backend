@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
-const { sendEmail } = require("../../helpers");
+import { sendEmail } from "../../helpers";
 const { NotFound, BadRequest } = require("http-errors");
 const { verifyMail } = require("../../helpers/emails");
 

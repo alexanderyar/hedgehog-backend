@@ -1,4 +1,4 @@
-const verifyMail = (verificationToken: string) => {
+export const verifyMail = (verificationToken: string) => {
   return `<div
       style="
         display: flex;
@@ -35,7 +35,7 @@ const verifyMail = (verificationToken: string) => {
       >
     </div>`;
 };
-const accessDataMail = (password: string) => {
+export const accessDataMail = (password: string) => {
   return `<div style="
         padding: 20px;
         border-radius: 6px;
@@ -50,5 +50,3 @@ const accessDataMail = (password: string) => {
         </p>
       </div>`;
 };
-
-module.exports = { verifyMail, accessDataMail };

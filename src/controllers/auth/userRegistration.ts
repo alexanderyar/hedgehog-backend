@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
 import { uuid } from "uuidv4";
-const bcrypt = require("bcrypt");
+import { verifyMail } from "../../helpers/emails";
+import bcrypt from "bcrypt";
 
 const { BASE_URL } = process.env;
 
@@ -32,7 +33,7 @@ export const userRegistration: RequestHandler = async (req, res) => {
   const verificationEmail = {
     to: email,
     subject: "Verify your email in order to use your profile",
-    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${verificationToken}">Click to verify your email</a>`,
+    html: verifyMail(verificationToken),
   };
 
   await sendEmail(verificationEmail);

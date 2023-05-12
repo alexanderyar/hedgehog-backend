@@ -6,8 +6,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
-import UserRoles from "../enums/UserRole";
+import UserRoles from "../enums/UserRoles";
+import { Session } from "./Session.entity";
 
 @Entity("user")
 export class User extends BaseEntity {
@@ -36,14 +38,21 @@ export class User extends BaseEntity {
   @Column({ type: "varchar" })
   email: string;
 
-  @Column({ nullable: true })
-  token: string;
-
   @Column()
+  country: string;
+
+  @Column({ nullable: true })
+  telephone_number: string;
+
+  @Column({ nullable: true })
   verification_token: string;
 
   @Column({ default: false })
   verified_email: boolean;
+
+  ////////// !!!!!!!!!!!!! /////////
+  @OneToMany(() => Session, (session) => session.user)
+  sessions: Session[];
 
   @CreateDateColumn()
   created_at: Date;
