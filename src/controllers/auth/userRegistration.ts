@@ -21,7 +21,7 @@ export const userRegistration: RequestHandler = async (req, res) => {
 
   const verificationToken: string = uuid();
 
-  const result = await User.create({
+  const result = User.create({
     ...req.body,
     // overriding password from req.user with hashedPassword
     password: hashedPassword,

@@ -11,7 +11,7 @@ export = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   // change BEFORE PRODUCTION!!!!
-  synchronize: process.env.DB_SYNCHRONIZE,
+  synchronize: process.env.DB_SYNCHRONIZE === 'true',
   ssl: process.env.DB_USE_SSL,
   logging: process.env.ENV === "dev",
 
