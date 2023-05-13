@@ -2,29 +2,24 @@ import dotenv from "dotenv";
 dotenv.config();
 import configDefaultEnv from "./defaultEnv";
 configDefaultEnv();
-import express, { NextFunction, Request, Errback } from "express";
+import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
 import AppDataSource from "./dataSource";
 
-import authRouter from "./routes/api/authRouter";
-import serviceRouter from "./routes/api/serviceRouter";
-
-import { Response } from "@sendgrid/helpers/classes";
+import routes from "./routes";
 
 const app = express();
 const port = parseInt(process.env.PORT || "3001");
-// console.log(process.env);
+
 AppDataSource.initialize()
   .then(() => {
     app.use(morgan("dev"));
     app.use(cors());
     app.use(express.json());
 
-    app.use("/api/auth", authRouter);
-
-    app.use("/api/services", serviceRouter);
+    app.use('/api', routes)
 
     app.use((req, res) => {
       res.status(404).json({ message: "Not found" });
