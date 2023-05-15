@@ -18,7 +18,7 @@ export const userLogin: RequestHandler = async (req, res) => {
   const comparePass = await bcrypt.compare(password, user.password);
   if (!comparePass) new Unauthorized("Email or password is wrong");
 
-  const token = tokenLoader(user.id, user.email, user.login);
+  const token = tokenLoader(user.id, user.email, user.login, user.role);
   // const payload = { id: user.id, email: user.email, name: user.login };
   // const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "7d" });
 

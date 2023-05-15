@@ -21,7 +21,7 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   });
 
   // sucessful verification gives the user TOKEN so he doesn't need to LOGIN once again
-  const token = tokenLoader(user.id, user.email, user.login);
+  const token = tokenLoader(user.id, user.email, user.login, user.role);
 
   // const payload = { id: user.id, email: user.email, name: user.login };
   // const token: string = jwt.sign(payload, process.env.SECRET_KEY, {

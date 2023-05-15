@@ -1,17 +1,14 @@
-import { access } from "fs";
 import {
   Entity,
   Column,
   BaseEntity,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from "typeorm";
 import { User } from "./User.entity";
 
-@Entity("session")
+@Entity("sessions")
 export class Session extends BaseEntity {
   @PrimaryGeneratedColumn({ type: "integer" })
   id: number;
@@ -21,6 +18,9 @@ export class Session extends BaseEntity {
 
   @Column({ nullable: true })
   refresh_token: string;
+
+  @Column()
+  user_id: number;
 
   ////////// !!!!!!!!!!!!! /////////
   @ManyToOne(() => User, (user) => user.sessions)

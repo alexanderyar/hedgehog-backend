@@ -19,7 +19,7 @@ export const authenticate = async (
   }
 
   try {
-    const { id, email, name } = jwt.verify(token, SECRET_KEY) as JwtPayload;
+    const { id, email, name, role } = jwt.verify(token, SECRET_KEY) as JwtPayload;
 
     const userVerification = await Session.findOne({
       where: { token: token },
@@ -27,28 +27,20 @@ export const authenticate = async (
     if (!userVerification || !userVerification.token.includes(token)) {
       throw new Unauthorized("Unauthorized User");
     }
+
     /////!!!!!
     // const user = await User.findOneBy({ id: id });
     // reddis.find...... потом
 
-    // if (userVerification.user) {
-    //   req.user = userVerification.user;
-    // }
-    const user = { id, email, name };
+    const user = { id, email, name, role };
     req.user = user;
-    // if (id) {
 
-    //   req.user = { id };
-    // }
 
     next();
   } catch (err: any) {
-    // console.table(`authenticate catch: ${err.message}`);
     // next(new Conflict("Oops...token...."));
     if (err.message === "jwt expired") {
       next(new Unauthorized("token expired"));
     } else next(new Conflict("regular authenticate err"));
   }
 };
-
-// module.exports = authenticate;
