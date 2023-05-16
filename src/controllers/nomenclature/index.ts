@@ -15,7 +15,14 @@ class NomenclatureController {
         take: number
     }) {
         const data = await Nomenclature.find(findOptions)
-        return data;
+        const count = await StockRepository.getGroupedCount();
+
+        res.json({
+            data,
+            count,
+            ...findOptions
+        })
+        // return data;
     }
 
     @paginated<StockBalance>({entity: StockBalance, countFunction: StockRepository.getGroupedCount.bind(StockRepository),})
@@ -30,7 +37,14 @@ class NomenclatureController {
     }) {
         const { skip, take, number } = findOptions;
         const data = await StockRepository.findGrouped(skip, take, number);
-        return data;
+        const count = await StockRepository.getGroupedCount();
+
+        res.json({
+            data,
+            count,
+            ...findOptions
+        })
+        // return data;
     }
 
 
