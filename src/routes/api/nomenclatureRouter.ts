@@ -11,10 +11,12 @@ router.get('/',  ctrlWrapper((req:Request<null,null,null,{
 }));
 router.get('/available',  ctrlWrapper((req:Request<null,null,null,{
     skip?: string,
-    take?: string
+    take?: string,
+    number?: string
 }>, res:Response, next:NextFunction, findOptions: {
     skip: number,
-    take: number
+    take: number,
+    number?: string
 }) => {
     nomenclature.getAvailable(req, res, next, findOptions)
 }));

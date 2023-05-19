@@ -31,8 +31,10 @@ export default function paginated<T extends BaseEntity>(params: PaginatedWithCou
 
             const findOptions: {
                 skip: number,
-                take: number
+                take: number,
+                [k:string]: any
             } = {
+                ...query,
                 skip: parseInt(query.skip),
                 take: parseInt(query.take)
             };

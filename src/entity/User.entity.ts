@@ -6,12 +6,13 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  OneToMany, OneToOne,
 } from "typeorm";
 import UserRoles from "../enums/UserRoles";
 import { Session } from "./Session.entity";
+import Client from "./Client.entity";
 
-@Entity("user")
+@Entity("users")
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn({ type: "integer" })
   id: number;
@@ -53,6 +54,9 @@ export class User extends BaseEntity {
   ////////// !!!!!!!!!!!!! /////////
   @OneToMany(() => Session, (session) => session.user)
   sessions: Session[];
+
+  @OneToOne(() => Client, (client) => client.user)
+  client?: Client;
 
   @CreateDateColumn()
   created_at: Date;

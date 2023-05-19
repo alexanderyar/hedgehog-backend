@@ -5,6 +5,7 @@ configDefaultEnv();
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+const logger = morgan("dev")
 
 import AppDataSource from "./dataSource";
 
@@ -15,7 +16,7 @@ const port = parseInt(process.env.PORT || "3001");
 
 AppDataSource.initialize()
   .then(() => {
-    app.use(morgan("dev"));
+    app.use(logger);
     app.use(cors());
     app.use(express.json());
 
@@ -27,6 +28,7 @@ AppDataSource.initialize()
 
     app.use((err: any, req: any, res: any, next: any) => {
       const { status = 500, message = "Server error" } = err;
+      console.error(err);
       res.status(status).json({ message });
     });
 

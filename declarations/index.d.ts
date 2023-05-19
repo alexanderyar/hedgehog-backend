@@ -1,4 +1,5 @@
 import {User} from "../src/entity/User.entity";
+import {Client} from "pg";
 // now you can import
 
 export {};
@@ -26,4 +27,5 @@ interface IUser {
     role?: any;
     country?: string;
     telephone_number?: string;
+    client?: Client;
 }

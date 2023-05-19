@@ -2,11 +2,17 @@ import express from "express";
 import nomenclatureRouter from "./api/nomenclatureRouter";
 import authRouter from "./api/authRouter";
 import serviceRouter from "./api/serviceRouter";
-const router = express.Router();
+import ordersRouter from "./api/ordersRouter";
+import {authenticate} from "../middlewares";
 
-router.use('/nomenclature', nomenclatureRouter);
+const router = express.Router();
+router.use('/services', serviceRouter);
 router.use('/auth', authRouter);
-router.use("/services", serviceRouter);
+
+
+router.use(authenticate)
+router.use('/nomenclature', nomenclatureRouter);
+router.use('/orders', ordersRouter)
 
 
 export default router;
