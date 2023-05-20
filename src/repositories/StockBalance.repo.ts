@@ -6,7 +6,7 @@ const StockRepository = dataSource.getRepository(StockBalance).extend({
     findGrouped(skip?:number, take?:number, number?: string, id?: number) {
         const offset = !skip? '' : `OFFSET ${skip}`;
         const limit = !take? '' : `LIMIT ${take}`;
-        const filterByName = !number ? '' : ` and nomenclatures.number like '%${number}%'`;
+        const filterByName = !number ? '' : ` and LOWER(nomenclatures.number) like LOWER('%${number}%')`;
         let filterById = '';
 
         if (id) {

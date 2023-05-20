@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, Table, TableColumn} from "typeorm"
+import {MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey} from "typeorm"
 
 export class Replacement1684471148023 implements MigrationInterface {
 
@@ -23,6 +23,14 @@ export class Replacement1684471148023 implements MigrationInterface {
                     name: 'replacement_id',
                     type: 'integer',
                     isNullable: false
+                })
+            ],
+            foreignKeys: [
+                new TableForeignKey({
+                    name: 'replacements_nomenclatures',
+                    referencedTableName: "nomenclatures",
+                    referencedColumnNames: ["id"],
+                    columnNames: ["nomenclature_id", 'replacement_id'],
                 })
             ]
         }))
