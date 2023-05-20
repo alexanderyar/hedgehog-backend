@@ -20,5 +20,7 @@ router.get('/available',  ctrlWrapper((req:Request<null,null,null,{
 }) => {
     nomenclature.getAvailable(req, res, next, findOptions)
 }));
+router.get('/:id/replacement', ctrlWrapper(nomenclature.getReplacement.bind(nomenclature)))
+
 
 export default router;
