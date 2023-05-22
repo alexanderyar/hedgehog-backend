@@ -20,5 +20,9 @@ router.get('/available',  ctrlWrapper((req:Request<null,null,null,{
 }) => {
     nomenclature.getAvailable(req, res, next, findOptions)
 }));
+router.get('/:id/replacement', ctrlWrapper(nomenclature.getReplacement.bind(nomenclature)));
+router.get('/:id/datasheet', ctrlWrapper(nomenclature.getDatasheet.bind(nomenclature)));
+router.post('/:id/datasheet', ctrlWrapper(nomenclature.saveDatasheet.bind(nomenclature)));
+
 
 export default router;

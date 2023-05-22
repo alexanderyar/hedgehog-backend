@@ -11,6 +11,7 @@ import StockBalance from "../src/entity/StockBalance.entity";
 import Supplier from "../src/entity/Suppliers.entity";
 import AppDataSource from "../src/dataSource";
 import Client from '../src/entity/Client.entity';
+import Replacement from "../src/entity/Replacement";
 
 
 const users: DeepPartial<User>[] = [
@@ -173,6 +174,13 @@ const clients: DeepPartial<Client>[] = [
     }
 ]
 
+const replacements: DeepPartial<Replacement>[] = [
+    {
+        nomenclature_id: 1,
+        replacement_id: 2
+    }
+]
+
 
 async function create() {
     await AppDataSource.initialize();
@@ -253,6 +261,16 @@ async function create() {
         const stockBalance = StockBalance.create(stockBalances[i]);
         try {
             await stockBalance.save();
+        }catch (e) {
+            console.log(e)
+
+        }
+    }
+
+    for (let i= 0; i< replacements.length; i++ ) {
+        const replacement = Replacement.create(replacements[i]);
+        try {
+            await replacement.save();
         }catch (e) {
             console.log(e)
 

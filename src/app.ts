@@ -5,6 +5,7 @@ configDefaultEnv();
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import fileUpload from 'express-fileupload';
 const logger = morgan("dev")
 
 import AppDataSource from "./dataSource";
@@ -19,8 +20,12 @@ AppDataSource.initialize()
     app.use(logger);
     app.use(cors());
     app.use(express.json());
+    app.use(fileUpload({
+      limits: { fileSize: 50 * 1024 * 1024 },
+    }));
 
-    app.use('/api', routes)
+
+      app.use('/api', routes)
 
     app.use((req, res) => {
       res.status(404).json({ message: "Not found" });

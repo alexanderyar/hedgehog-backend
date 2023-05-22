@@ -12,7 +12,8 @@ type Entity<T> = {
 } & typeof BaseEntity
 type PaginatedWithCount<T> = {
     entity: Entity<T>
-    countFunction?: () => Promise<number>
+    countFunction?: () => Promise<number>;
+    skipCount?: boolean
 }
 export default function paginated<T extends BaseEntity>(params: PaginatedWithCount<T>): (target: any, propertyKey: string, descriptor: PropertyDescriptor) => void
 {
@@ -40,7 +41,9 @@ export default function paginated<T extends BaseEntity>(params: PaginatedWithCou
             };
             const data = await childFunction.apply(this, [req,res,next, findOptions]);
             let count;
-            if (params.countFunction) {
+            if (params.skipCount) {
+                count = data.length;
+            } else if (params.countFunction) {
                 count = await params.countFunction();
             } else {
                 count = await params.entity.count();
