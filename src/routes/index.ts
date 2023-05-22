@@ -10,7 +10,7 @@ router.use('/services', serviceRouter);
 router.use('/auth', authRouter);
 
 
-router.use(authenticate)
+// router.use(authenticate)
 router.use('/nomenclature', nomenclatureRouter);
 router.use('/orders', ordersRouter)
 

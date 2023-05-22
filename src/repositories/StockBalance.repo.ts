@@ -47,9 +47,15 @@ stock.balance,
 brand, 
 package, 
 manufacture_date,
-COALESCE(has_replacement.present, false) as present
+COALESCE(has_replacement.present, false) as present,
+CASE WHEN datasheets.file_name IS NULL 
+            THEN false 
+            ELSE true 
+    END AS has_datasheet
 from stock
 left join has_replacement on has_replacement.nomenclature_id = stock.id
+left join datasheets on datasheets.nomenclature_id = stock.id
+
 `;
 
 
