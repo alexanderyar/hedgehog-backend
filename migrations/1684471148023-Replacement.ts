@@ -30,7 +30,13 @@ export class Replacement1684471148023 implements MigrationInterface {
                     name: 'replacements_nomenclatures',
                     referencedTableName: "nomenclatures",
                     referencedColumnNames: ["id"],
-                    columnNames: ["nomenclature_id", 'replacement_id'],
+                    columnNames: ["nomenclature_id"],
+                }),
+                new TableForeignKey({
+                    name: 'replacements_nomenclatures_repl',
+                    referencedTableName: "nomenclatures",
+                    referencedColumnNames: ["id"],
+                    columnNames: ['replacement_id'],
                 })
             ]
         }))

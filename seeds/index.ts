@@ -22,7 +22,7 @@ const users: DeepPartial<User>[] = [
         password: '123qweasd',
         email: 'customer@test.test',
         country: 'Ukraine',
-        telephone_number: '123qweasd',
+        telephone_number: '123',
         verified_email: true
     },
     {
@@ -32,7 +32,7 @@ const users: DeepPartial<User>[] = [
         password: '123qweasd',
         email: 'admin@test.test',
         country: 'Ukraine',
-        telephone_number: '123qweasd',
+        telephone_number: '123',
         verified_email: true
     },
     {
@@ -42,7 +42,7 @@ const users: DeepPartial<User>[] = [
         password: '123qweasd',
         email: 'sales_manager@test.test',
         country: 'Ukraine',
-        telephone_number: '123qweasd',
+        telephone_number: '123',
         verified_email: true
     },
     {
@@ -52,7 +52,7 @@ const users: DeepPartial<User>[] = [
         password: '123qweasd',
         email: 'supplier@test.test',
         country: 'Ukraine',
-        telephone_number: '123qweasd',
+        telephone_number: '123',
         verified_email: true
     },
     {
@@ -62,7 +62,7 @@ const users: DeepPartial<User>[] = [
         password: '123qweasd',
         email: 'supply_manager@test.test',
         country: 'Ukraine',
-        telephone_number: '123qweasd',
+        telephone_number: '123',
         verified_email: true,
         created_at: new Date(),
         updated_at: new Date
