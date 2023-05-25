@@ -1,5 +1,6 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import OrderStatuses from "../enums/OrderStatuses";
+import OrderByNomenclature from "./OrderByNomenclature.entity";
 
 @Entity({name: 'orders'})
 export default class Order extends BaseEntity{
@@ -16,4 +17,7 @@ export default class Order extends BaseEntity{
         nullable: true
     })
     comment: string;
+
+    @OneToMany(()=> OrderByNomenclature, (ordByNom) => ordByNom.order)
+    nomenclatures: OrderByNomenclature[];
 }

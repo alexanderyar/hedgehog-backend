@@ -7,6 +7,7 @@ import Replacement from "../../entity/Replacement";
 import NomenclatureRepo from "../../repositories/Nomenclature.repo";
 import Datasheet from "../../entity/Datasheet.entity";
 import {UploadedFile} from "express-fileupload";
+import {User} from "../../entity/User.entity";
 
 class NomenclatureController {
     @paginated<Nomenclature>({entity: Nomenclature})
