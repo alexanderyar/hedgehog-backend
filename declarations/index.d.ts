@@ -1,31 +1,32 @@
-import {User} from "../src/entity/User.entity";
-import {Client} from "pg";
+import { User } from "../src/entity/User.entity";
+import { Client } from "pg";
 // now you can import
 
 export {};
 
 declare global {
-    namespace Express {
-        interface Request {
-            user: IUser;
-        }
+  namespace Express {
+    interface Request {
+      user: IUser;
     }
+  }
 }
 
 declare global {
-    namespace NodeJS {
-        interface ProcessEnv {
-            SECRET_KEY: string;
-        }
+  namespace NodeJS {
+    interface ProcessEnv {
+      SECRET_KEY: string;
     }
+  }
 }
 
 interface IUser {
-    name?: string;
-    email?: string;
-    id: number;
-    role?: any;
-    country?: string;
-    telephone_number?: string;
-    client?: Client;
+  name?: string;
+  email?: string;
+  id: number;
+  role?: any;
+  country?: string;
+  telephone_number?: string;
+  client?: Client;
+  client_id?: number;
 }

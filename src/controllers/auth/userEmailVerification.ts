@@ -5,12 +5,25 @@ import { NotFound } from "http-errors";
 import { tokenLoader } from "../../helpers/tokenLoader";
 import { refreshTokenLoader } from "../../helpers/refreshTokenLoader";
 
+import UserRoles from "../../enums/UserRoles";
+import Client from "../../entity/Client.entity";
+
 export const userEmailVerification: RequestHandler = async (req, res) => {
   const { verificationToken } = req.params;
   if (!verificationToken) {
     throw new NotFound(" valid verification TOKEN has been NOT received");
   }
-  const user = await User.findOneBy({ verification_token: verificationToken });
+  // const user = await User.findOneBy({ verification_token: verificationToken });
+  const users = await User.find({
+    where: {
+      verification_token: verificationToken,
+    },
+    // FIXME relations doesn't work, so client ID can't be sent to frontEnd in redirect link
+    // relations: ["client"],
+  });
+  const user = users[0];
+  // console.log(users);
+
   if (!user) {
     throw new NotFound("No such user in DB");
   }
@@ -60,9 +73,25 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   // });
 
   // when we have front-end, we'll use this approach
-  res.redirect(
-    `${process.env.FRONTEND_URL}?token=${token}&refresh_token=${refresh_token}&id=${user.id}&name=${user.login}&email=${user.email}`
-  );
+
+  /////////// FIXME костыль
+  // add client_id if the user IS customer
+  if (user.role === UserRoles.customer) {
+    const client = await Client.findOne({
+      where: { user_id: user.id },
+    });
+
+    const client_id = client?.id;
+
+    res.redirect(
+      `${process.env.FRONTEND_URL}?token=${token}&refresh_token=${refresh_token}&id=${user.id}&name=${user.login}&email=${user.email}&role=${user.role}&client_id=${client_id}`
+    );
+  } else {
+    res.redirect(
+      `${process.env.FRONTEND_URL}?token=${token}&refresh_token=${refresh_token}&id=${user.id}&name=${user.login}&email=${user.email}&role=${user.role}`
+    );
+  }
 };
+// &client_id=${client_id}
 
 // module.exports = userEmailVerification;

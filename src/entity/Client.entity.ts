@@ -1,25 +1,46 @@
-import {BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn} from "typeorm";
-import {User} from "./User.entity";
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { User } from "./User.entity";
 
 @Entity({
-    name: 'clients'
+  name: "clients",
 })
 export default class Client extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    user_id: number;
+  @Column()
+  user_id: number;
 
-    @Column()
-    manager_id: number;
+  @Column()
+  manager_id: number;
 
-    @Column()
-    track_manager: boolean;
+  @Column()
+  track_manager: boolean;
 
-    @Column()
-    check_delay: number;
+  @Column()
+  check_delay: number;
 
-    @OneToOne(() => User, (user) => user.client)
-    user: User
+  @OneToOne(() => User, (user) => user.client)
+  user: User;
+
+  @Column()
+  address: string;
+
+  @Column()
+  ceo_name: string;
+
+  @Column()
+  bank_info: string;
+
+  @Column()
+  bill_to: string;
+
+  @Column()
+  ship_to: string;
 }
