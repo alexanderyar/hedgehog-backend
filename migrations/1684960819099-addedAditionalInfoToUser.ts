@@ -8,32 +8,32 @@ export class AddedAditionalInfoToUser1684960819099
       new TableColumn({
         name: "address",
         type: "varchar",
-        length: "128",
+        length: "256",
         // default: `'${Brands.origin}'`,
         isNullable: true,
       }),
       new TableColumn({
         name: "ceo_name",
         type: "varchar",
-        length: "128",
+        length: "256",
         isNullable: true,
       }),
       new TableColumn({
         name: "bank_info",
         type: "varchar",
-        length: "128",
+        length: "256",
         isNullable: true,
       }),
       new TableColumn({
         name: "bill_to",
         type: "varchar",
-        length: "128",
+        length: "256",
         isNullable: true,
       }),
       new TableColumn({
         name: "ship_to",
         type: "varchar",
-        length: "128",
+        length: "256",
         isNullable: true,
       }),
     ]);
