@@ -13,16 +13,7 @@ export const userEmailVerification: RequestHandler = async (req, res) => {
   if (!verificationToken) {
     throw new NotFound(" valid verification TOKEN has been NOT received");
   }
-  // const user = await User.findOneBy({ verification_token: verificationToken });
-  const users = await User.find({
-    where: {
-      verification_token: verificationToken,
-    },
-    // FIXME relations doesn't work, so client ID can't be sent to frontEnd in redirect link
-    // relations: ["client"],
-  });
-  const user = users[0];
-  // console.log(users);
+  const user = await User.findOneBy({ verification_token: verificationToken });
 
   if (!user) {
     throw new NotFound("No such user in DB");

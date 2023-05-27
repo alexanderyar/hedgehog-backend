@@ -4,6 +4,7 @@ import Client from "../../entity/Client.entity";
 import { uuid } from "uuidv4";
 import { verifyMail } from "../../helpers/emails";
 import bcrypt from "bcrypt";
+import AppDataSource from "../../dataSource";
 
 const { BASE_URL } = process.env;
 
@@ -29,29 +30,25 @@ export const userRegistration: RequestHandler = async (req, res) => {
     password: hashedPassword,
     verification_token: verificationToken,
   });
+  // now both operations in a single transaction
+  await AppDataSource.transaction(async (transactionalEntityManager) => {
+    await result.save();
 
-  await result.save();
+    // creating a client in client's table
 
-  // creating a client in client's table
+    const newClient = Client.create({
+      user_id: result.id,
 
-  // временная затычка
-  // const user_test = await User.findOneBy({ email: email });
-  // console.log(user_test);
-  // if (!user_test) {
-  //   throw new NotFound("aaaaaagggghh!");
-  // }
-  const newClient = Client.create({
-    user_id: result.id,
+      // FIXME hardcode
+      //////////////////
+      manager_id: 3,
+      track_manager: false,
+      check_delay: 0,
+      ////////////////////
+    });
 
-    // FIXME hardcode
-    //////////////////
-    manager_id: 3,
-    track_manager: false,
-    check_delay: 0,
-    ////////////////////
+    await newClient.save();
   });
-
-  await newClient.save();
 
   const verificationEmail = {
     to: email,

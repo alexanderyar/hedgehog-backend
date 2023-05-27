@@ -6,9 +6,9 @@ export const clientsAddInfo: RequestHandler = async (req, res) => {
 
   console.log(info);
 
-  const client_id = req.user.client_id!;
+  const client_id = req.user.client_id;
 
-  await Client.update(client_id, {
+  await Client.update(client_id!, {
     address: info.address,
     ceo_name: info.ceoName,
     bank_info: info.bankInfo,

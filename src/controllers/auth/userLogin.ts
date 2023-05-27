@@ -11,37 +11,10 @@ import UserRoles from "../../enums/UserRoles";
 import Client from "../../entity/Client.entity";
 
 const { SECRET_KEY } = process.env;
-// const users = await userRepository.find({
-//   where: {
-//     /* conditions */
-//   },
-//   relations: {
-//     /* relations */
-//   },
-// });
+
 export const userLogin: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOneBy({ email });
-
-  // const users = await User.find({
-  //   where: {
-  //     email,
-  //   },
-  //   relations: ["client"],
-  // });
-  // console.log(users);
-  ////////////////////////////////////////////////
-  ////////////////////////////////////////////////
-  // const user = await User.query(
-  //   `select
-  // users.id, users.role, users.verification_token, users.password, users.verified_email,   clients.id as client_id
-  // from users
-  // left join clients ON users.id = clients.user_id
-  // where users.email = $1`,
-  //   [email]
-  // );
-
-  // const user = users[0];
 
   if (!user) throw new Unauthorized("User data is not valid");
 
