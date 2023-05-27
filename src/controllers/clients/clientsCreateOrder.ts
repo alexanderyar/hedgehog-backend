@@ -4,6 +4,7 @@ import Client from "../../entity/Client.entity";
 import Order from "../../entity/Order.entity";
 import OrderStatuses from "../../enums/OrderStatuses";
 import OrderByNomenclature from "../../entity/OrderByNomenclature.entity";
+import AppDataSource from "../../dataSource";
 
 export const clientsCreateOrder: RequestHandler = async (req, res) => {
   let absent_info: any = [];
@@ -39,8 +40,6 @@ export const clientsCreateOrder: RequestHandler = async (req, res) => {
     }
   });
 
-  console.log(absent_info);
-
   if (absent_info.length > 0) {
     res.status(400).json({
       absent_info,
@@ -48,30 +47,54 @@ export const clientsCreateOrder: RequestHandler = async (req, res) => {
   }
 
   ////// order
-  const result = await Order.create({
-    client_id: user.client_id,
-    // FIXME status field can't be default
-    // FIXME add comment text
-    // QueryFailedError: null value in column "status" of relation "orders" violates not-null constraint
-    status: OrderStatuses.created,
-  });
-  await result.save();
+  //   const result = Order.create({
+  // client_id: user.client_id,
+  // FIXME status field can't be default
+  // FIXME add comment text
+  // QueryFailedError: null value in column "status" of relation "orders" violates not-null constraint
+  //     status: OrderStatuses.created,
+  //   });
 
-  const new_data = data.map((item: any) => {
-    item.order_id = result.id;
-    item.nomenclature_id = item.part_number;
-    //// FIXME price hardcoded
-    item.price = 666;
-    return item;
-  });
+  //   await result.save();
 
-  //   console.log("new data" + JSON.stringify(new_data));
-  /// order by nom
-  const by_nomenclature_result = await OrderByNomenclature.createQueryBuilder()
-    .insert()
-    .into(OrderByNomenclature)
-    .values(new_data)
-    .execute();
+  //   const new_data = data.map((item: any) => {
+  //     item.order_id = result.id;
+  //     item.nomenclature_id = item.part_number;
+  //     //// FIXME price hardcoded
+  //     item.price = 666;
+  //     return item;
+  //   });
+
+  //   const by_nomenclature_result = await OrderByNomenclature.createQueryBuilder()
+  //     .insert()
+  //     .into(OrderByNomenclature)
+  //     .values(new_data)
+  //     .execute();
+
+  await AppDataSource.transaction(async (transactionEntityManager) => {
+    const result = Order.create({
+      client_id: user.client_id,
+      // FIXME status field can't be default
+      // FIXME add comment text
+      // QueryFailedError: null value in column "status" of relation "orders" violates not-null constraint
+      status: OrderStatuses.created,
+    });
+    await result.save();
+
+    const new_data = data.map((item: any) => {
+      item.order_id = result.id;
+      item.nomenclature_id = item.part_number;
+      //// FIXME price hardcoded
+      item.price = 666;
+      return item;
+    });
+
+    await OrderByNomenclature.createQueryBuilder()
+      .insert()
+      .into(OrderByNomenclature)
+      .values(new_data)
+      .execute();
+  });
 
   res.status(204).json({
     message: "the order has been submitted successfully ",
