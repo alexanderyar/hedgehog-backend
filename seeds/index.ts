@@ -4,7 +4,7 @@ import UserRoles from "../src/enums/UserRoles";
 import bcrypt from "bcrypt";
 import {DeepPartial} from "typeorm";
 import Order from "../src/entity/Order.entity";
-import OrderStatuses from "../src/enums/OrderStatuses";
+import OrderStatuses, {OrderStatusesMap} from "../src/enums/OrderStatuses";
 import Nomenclature from "../src/entity/Nomenclature.enity";
 import OrderByNomenclature from "../src/entity/OrderByNomenclature.entity";
 import StockBalance from "../src/entity/StockBalance.entity";
@@ -71,20 +71,20 @@ const users: DeepPartial<User>[] = [
 
 const orders: DeepPartial<Order>[] = [
     {
-        client_id: 1,
-        status: OrderStatuses.created
+        client_id: 2,
+        status: OrderStatusesMap.get(OrderStatuses.created)
     },
     {
-        client_id: 1,
-        status: OrderStatuses.cancelled
+        client_id: 2,
+        status: OrderStatusesMap.get(OrderStatuses.cancelled)
     },
     {
-        client_id: 1,
-        status: OrderStatuses.delivered
+        client_id: 2,
+        status: OrderStatusesMap.get(OrderStatuses.delivered)
     },
     {
-        client_id: 1,
-        status: OrderStatuses.in_progress
+        client_id: 2,
+        status: OrderStatusesMap.get(OrderStatuses.manager_review)
     }
 ]
 
@@ -185,16 +185,16 @@ const replacements: DeepPartial<Replacement>[] = [
 async function create() {
     await AppDataSource.initialize();
 
-    for (let i= 0; i< users.length; i++ ) {
-        const _user = User.create(users[i]);
-        _user.password = await bcrypt.hash(_user.password, 10);
-        try {
-            await _user.save();
-        }catch (e) {
-            console.log(e)
-        }
-    }
-
+    // for (let i= 0; i< users.length; i++ ) {
+    //     const _user = User.create(users[i]);
+    //     _user.password = await bcrypt.hash(_user.password, 10);
+    //     try {
+    //         await _user.save();
+    //     }catch (e) {
+    //         console.log(e)
+    //     }
+    // }
+    //
     for (let i= 0; i< clients.length; i++ ) {
         const client = Client.create(clients[i]);
         try {
@@ -206,43 +206,35 @@ async function create() {
         }
     }
 
+    const savedOrdersIDs = [];
     for (let i= 0; i< orders.length; i++ ) {
         const order = Order.create(orders[i]);
         try {
-            await order.save();
+            const _order = await order.save();
+            savedOrdersIDs.push(_order.id);
         }catch (e) {
             console.log(e)
 
         }
     }
 
-    for (let i= 0; i< nomenclatures.length; i++ ) {
-        const nomenclature = Nomenclature.create(nomenclatures[i]);
-        try {
-            await nomenclature.save();
-        }catch (e) {
-            console.log(e)
-
-        }
-    }
+    // for (let i= 0; i< nomenclatures.length; i++ ) {
+    //     const nomenclature = Nomenclature.create(nomenclatures[i]);
+    //     try {
+    //         await nomenclature.save();
+    //     }catch (e) {
+    //         console.log(e)
+    //
+    //     }
+    // }
 
     for (let i= 0; i< orderByNomenclature.length; i++ ) {
+        orderByNomenclature[i].order_id = savedOrdersIDs[0];
         const _orderByNomenclature = OrderByNomenclature.create(orderByNomenclature[i]);
         try {
             await _orderByNomenclature.save();
         }catch (e) {
             console.log(e)
-
-        }
-    }
-
-    for (let i= 0; i< suppliers.length; i++ ) {
-        const supplier = Supplier.create(suppliers[i]);
-        try {
-            await supplier.save();
-        }catch (e) {
-            console.log(e)
-
         }
     }
 
@@ -256,26 +248,36 @@ async function create() {
     //     }
     // }
 
+    // for (let i= 0; i< suppliers.length; i++ ) {
+    //     const supplier = Supplier.create(suppliers[i]);
+    //     try {
+    //         await supplier.save();
+    //     }catch (e) {
+    //         console.log(e)
+    //
+    //     }
+    // }
 
-    for (let i= 0; i< stockBalances.length; i++ ) {
-        const stockBalance = StockBalance.create(stockBalances[i]);
-        try {
-            await stockBalance.save();
-        }catch (e) {
-            console.log(e)
 
-        }
-    }
+    // for (let i= 0; i< stockBalances.length; i++ ) {
+    //     const stockBalance = StockBalance.create(stockBalances[i]);
+    //     try {
+    //         await stockBalance.save();
+    //     }catch (e) {
+    //         console.log(e)
+    //
+    //     }
+    // }
 
-    for (let i= 0; i< replacements.length; i++ ) {
-        const replacement = Replacement.create(replacements[i]);
-        try {
-            await replacement.save();
-        }catch (e) {
-            console.log(e)
-
-        }
-    }
+    // for (let i= 0; i< replacements.length; i++ ) {
+    //     const replacement = Replacement.create(replacements[i]);
+    //     try {
+    //         await replacement.save();
+    //     }catch (e) {
+    //         console.log(e)
+    //
+    //     }
+    // }
 }
 
 create().then(()=> {

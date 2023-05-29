@@ -1,5 +1,5 @@
 import {User} from "../src/entity/User.entity";
-import {Client} from "pg";
+import {Client} from "../src/entity/Client.entity";
 // now you can import
 
 export {};
