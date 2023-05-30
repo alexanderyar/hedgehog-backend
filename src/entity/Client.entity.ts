@@ -33,6 +33,12 @@ export default class Client extends BaseEntity {
   address: string;
 
   @Column()
+  company_name: string;
+
+  @Column()
+  type: string;
+
+  @Column()
   ceo_name: string;
 
   @Column()
@@ -43,4 +49,10 @@ export default class Client extends BaseEntity {
 
   @Column()
   ship_to: string;
+
+  @Column()
+  country: string;
+
+  @Column()
+  formatted_id: string;
 }

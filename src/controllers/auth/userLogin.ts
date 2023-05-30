@@ -42,6 +42,7 @@ export const userLogin: RequestHandler = async (req, res) => {
     id: number;
     login: string;
     email: string;
+    role: UserRoles;
     client_id?: number;
   }
 
@@ -49,6 +50,7 @@ export const userLogin: RequestHandler = async (req, res) => {
     id: user.id,
     login: user.login,
     email: user.email,
+    role: user.role,
   };
 
   /// fetching Client ID from DB
