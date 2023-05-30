@@ -14,7 +14,7 @@ export const clientsAddInfo: RequestHandler = async (req, res) => {
     const client = await Client.findOne({ where: { user_id: req.user.id } });
     console.log(client);
 
-    const country = client?.country.substring(0, 3);
+    const country = client?.country.substring(0, 2);
     const number = client_id?.toString().padStart(4, "0");
     const company_name = info.companyName.substring(0, 3);
     const type = info.type.substring(0, 1);
