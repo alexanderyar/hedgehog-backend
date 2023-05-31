@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { User } from "./User.entity";
+import { ClientTypes } from "../enums/ClientTypes";
 
 @Entity({
   name: "clients",
@@ -36,7 +37,8 @@ export default class Client extends BaseEntity {
   company_name: string;
 
   @Column()
-  type: string;
+  type: "enum";
+  enum: ClientTypes;
 
   @Column()
   ceo_name: string;
