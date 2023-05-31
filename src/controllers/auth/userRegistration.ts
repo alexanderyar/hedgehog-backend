@@ -38,12 +38,13 @@ export const userRegistration: RequestHandler = async (req, res) => {
 
     const newClient = Client.create({
       user_id: result.id,
-
+      country: req.body.country,
       // FIXME hardcode
       //////////////////
       manager_id: 3,
       track_manager: false,
       check_delay: 0,
+
       ////////////////////
     });
 

@@ -19,17 +19,21 @@ export const clientsCreateOrder: RequestHandler = async (req, res) => {
   const client = await Client.findOneBy({ id: client_id });
 
   const address = client!.address;
+  const company_name = client!.company_name;
   const ceo_name = client!.ceo_name;
   const bank_info = client!.bank_info;
   const bill_to = client!.bill_to;
   const ship_to = client!.ship_to;
+  const type = client!.ship_to;
 
   const info = [
     { address },
+    { company_name },
     { ceo_name },
     { bank_info },
     { bill_to },
     { ship_to },
+    { type },
   ];
 
   info.map((item) => {
@@ -41,7 +45,7 @@ export const clientsCreateOrder: RequestHandler = async (req, res) => {
   });
 
   if (absent_info.length > 0) {
-    res.status(400).json({
+    return res.status(400).json({
       absent_info,
     });
   }
