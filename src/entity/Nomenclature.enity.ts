@@ -10,16 +10,16 @@ export default class Nomenclature extends BaseEntity {
   })
   part_number: string;
 
-  @Column({})
-  brand: Brands;
+  // @Column({})
+  // brand: Brands;
 
-  @Column({
-    length: 128,
-  })
-  package: string;
+  // @Column({
+  //   length: 128,
+  // })
+  // package: string;
 
-  @Column({
-    name: "manufacture_date",
-  })
-  manufactureDate: string;
+  // @Column({
+  //   name: "manufacture_date",
+  // })
+  // manufactureDate: string;
 }
