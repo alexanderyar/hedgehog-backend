@@ -41,9 +41,6 @@ export default class Client extends BaseEntity {
   @Column()
   ship_to: string;
 
-  @OneToOne(() => User, (user) => user.client)
-  user: User
-
   @OneToMany(() => Order, (order) => order.client)
       // @JoinColumn({name: 'id'})
   orders: Order[]

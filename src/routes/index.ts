@@ -3,7 +3,6 @@ import nomenclatureRouter from "./api/nomenclatureRouter";
 import authRouter from "./api/authRouter";
 import serviceRouter from "./api/serviceRouter";
 import ordersRouter from "./api/ordersRouter";
-import clientsRouter from "./api/clientsRouter";
 import { authenticate } from "../middlewares";
 import clientsRouter from "./api/clientsRouter";
 

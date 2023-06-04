@@ -1,25 +1,22 @@
 import express, {NextFunction, Request, Response} from "express";
-import nomenclature from "../../controllers/nomenclature";
 import {ctrlWrapper} from "../../helpers";
 import clientsController from "../../controllers/clients";
 const router = express.Router();
 
 import { authenticate, orderAuthenticate } from "../../middlewares";
 
-import ctrl from "../../controllers/clients/";
-
 router.post(
   "/:client_id/orders",
   authenticate,
   orderAuthenticate,
-  ctrl.clientsCreateOrder
+  clientsController.clientsCreateOrder.bind(clientsController)
 );
 
 router.post(
   "/:client_id",
   authenticate,
   orderAuthenticate,
-  ctrl.clientsAddInfo
+  ctrlWrapper(clientsController.clientsAddInfo.bind(clientsController))
 );
 
 router.get('/', ctrlWrapper(clientsController.getAllClients.bind(clientsController)));
