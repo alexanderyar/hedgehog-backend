@@ -1,17 +1,20 @@
 import { RequestHandler } from "express";
 import { User } from "../../entity/User.entity";
+import Client from "../../entity/Client.entity";
 import { uuid } from "uuidv4";
 import { verifyMail } from "../../helpers/emails";
 import bcrypt from "bcrypt";
+import AppDataSource from "../../dataSource";
 
 const { BASE_URL } = process.env;
 
 const { sendEmail } = require("../../helpers");
 
-const { BadRequest, Conflict } = require("http-errors");
+const { BadRequest, Conflict, NotFound } = require("http-errors");
 
 export const userRegistration: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOneBy({ email: email });
 
   if (user) {
@@ -27,8 +30,25 @@ export const userRegistration: RequestHandler = async (req, res) => {
     password: hashedPassword,
     verification_token: verificationToken,
   });
+  // now both operations in a single transaction
+  await AppDataSource.transaction(async (transactionalEntityManager) => {
+    await result.save();
 
-  await result.save();
+    // creating a client in client's table
+
+    const newClient = Client.create({
+      user_id: result.id,
+
+      // FIXME hardcode
+      //////////////////
+      manager_id: 3,
+      track_manager: false,
+      check_delay: 0,
+      ////////////////////
+    });
+
+    await newClient.save();
+  });
 
   const verificationEmail = {
     to: email,

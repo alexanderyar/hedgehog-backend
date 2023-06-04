@@ -1,25 +1,25 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import Brands from "../enums/Brands";
-@Entity({name: 'nomenclatures'})
+@Entity({ name: "nomenclatures" })
 export default class Nomenclature extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({
-        name: 'number'
-    })
-    part_number: string;
+  @Column({
+    name: "number",
+  })
+  part_number: string;
 
-    @Column()
-    brand: Brands;
+  @Column({})
+  brand: Brands;
 
-    @Column({
-        length: 128
-    })
-    package: string;
+  @Column({
+    length: 128,
+  })
+  package: string;
 
-    @Column({
-        name: 'manufacture_date'
-    })
-    manufactureDate: string;
+  @Column({
+    name: "manufacture_date",
+  })
+  manufactureDate: string;
 }

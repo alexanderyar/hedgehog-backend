@@ -84,6 +84,10 @@ class ClientsController {
 
         res.send(data.file_buffer);
     }
+
+    async clientsCreateOrder () => {}
+    async clientsAddInfo () => {}
+
 }
 
 export default new ClientsController();

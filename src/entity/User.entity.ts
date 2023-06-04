@@ -6,7 +6,8 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, OneToOne,
+  OneToMany,
+  OneToOne,
 } from "typeorm";
 import UserRoles from "../enums/UserRoles";
 import { Session } from "./Session.entity";

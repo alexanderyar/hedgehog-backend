@@ -9,7 +9,7 @@ const { authenticate, validateBody } = require("../../middlewares");
 
 router.post(
   "/register",
-  validateBody(userRegistrationJoiSchema),
+  // validateBody(userRegistrationJoiSchema),
   ctrl.userRegistration
 );
 
