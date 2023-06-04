@@ -15,13 +15,12 @@ export const authenticate = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { authorization = "" } = req.headers;
-  const [bearer, token] = authorization.split(" ");
-  if (bearer !== "Bearer") {
-    throw new Unauthorized("Oops...Unauthorized");
-  }
-
   try {
+    const { authorization = "" } = req.headers;
+    const [bearer, token] = authorization.split(" ");
+    if (bearer !== "Bearer") {
+      throw new Unauthorized("Oops...Unauthorized");
+    }
     const { id, email, name, role } = jwt.verify(
       token,
       SECRET_KEY

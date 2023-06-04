@@ -2,8 +2,8 @@ import dataSource from "../dataSource";
 import Replacement from "../entity/Replacement";
 
 const NomenclatureRepo = dataSource.getRepository(Replacement).extend({
-    getReplacement(nomenclatureId: number) {
-        const query = `
+  getReplacement(nomenclatureId: number) {
+    const query = `
 WITH 
 repl as (
 SELECT 
@@ -19,8 +19,8 @@ nomenclatures.number as part_number,
 FROM repl
 left join nomenclatures on nomenclatures.id = repl.replacement_id
 `;
-        return this.query(query, [nomenclatureId]);
-    }
-})
+    return this.query(query, [nomenclatureId]);
+  },
+});
 
 export default NomenclatureRepo;
