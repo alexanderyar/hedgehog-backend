@@ -23,6 +23,6 @@ export default class Order extends BaseEntity{
     nomenclatures: OrderByNomenclature[];
 
     @ManyToOne(()=> Client, (client) => client.orders)
-    @JoinColumn({name: 'id'})
+    @JoinColumn({name: 'client_id'})
     client: Client;
 }

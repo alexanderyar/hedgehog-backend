@@ -10,7 +10,7 @@ import OrderStatuses from "../../enums/OrderStatuses";
 class OrdersController {
 
     // @UseRole(UserRoles.customer)
-    async getAll(req:Request, res:Response, next:NextFunction) {
+    async getAll(req:Request<any, any,any, {client_id?: string}>, res:Response, next:NextFunction) {
         if (req.user.role === UserRoles.customer) {
             const client = await Client.findOne({where: {user_id: req.user.id}});
             if (!client) {
@@ -18,6 +18,18 @@ class OrdersController {
             }
             const data = await ordersRepo.getOrdersWithPriceByClient(client.id);
             res.json(data);
+        } else if (req.user.role === UserRoles.sales_manager) {
+            const client_id = parseInt(req.query.client_id!) || undefined;
+            const orders = await Order.find({
+                where: {
+                    client_id: client_id,
+                    client: {
+                        manager_id: req.user.id
+                    }
+                },
+                relations: ['client']
+            })
+            res.send(orders);
         }
     }
 

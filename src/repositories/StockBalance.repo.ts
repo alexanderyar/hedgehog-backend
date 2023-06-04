@@ -20,9 +20,9 @@ with stock as (
 SELECT
 stock_balances.nomenclature_id as id,
 nomenclatures.number as part_number,
-nomenclatures.brand,
-nomenclatures.package,
-nomenclatures.manufacture_date,
+brand,
+package,
+manufacture_date,
 sum(stock_balances.balance) as balance
 FROM 
 stock_balances
