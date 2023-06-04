@@ -40,9 +40,6 @@ export class User extends BaseEntity {
   @Column({ type: "varchar" })
   email: string;
 
-  @Column()
-  country: string;
-
   @Column({ nullable: true })
   telephone_number: string;
 

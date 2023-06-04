@@ -1,6 +1,13 @@
-import {BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne,
-  PrimaryGeneratedColumn,} from "typeorm";
-import {User} from "./User.entity";
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  OneToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { User } from "./User.entity";
+import { ClientTypes } from "../enums/ClientTypes";
 import Order from "./Order.entity";
 import Contract from "./Contract.entity";
 
@@ -30,6 +37,13 @@ export default class Client extends BaseEntity {
   address: string;
 
   @Column()
+  company_name: string;
+
+  @Column()
+  type: "enum";
+  enum: ClientTypes;
+
+  @Column()
   ceo_name: string;
 
   @Column()
@@ -40,6 +54,12 @@ export default class Client extends BaseEntity {
 
   @Column()
   ship_to: string;
+
+  @Column()
+  country: string;
+
+  @Column()
+  formatted_id: string;
 
   @OneToMany(() => Order, (order) => order.client)
       // @JoinColumn({name: 'id'})
