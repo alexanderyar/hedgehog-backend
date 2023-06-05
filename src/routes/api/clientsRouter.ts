@@ -6,13 +6,6 @@ const router = express.Router();
 import { authenticate, orderAuthenticate } from "../../middlewares";
 
 router.post(
-  "/:client_id/orders",
-  authenticate,
-  orderAuthenticate,
-  clientsController.clientsCreateOrder.bind(clientsController)
-);
-
-router.post(
   "/:client_id",
   authenticate,
   orderAuthenticate,
@@ -21,8 +14,10 @@ router.post(
 
 router.get('/', ctrlWrapper(clientsController.getAllClients.bind(clientsController)));
 router.get('/:id', ctrlWrapper(clientsController.getClientDetails.bind(clientsController)));
+router.get('/:id/shipInfo', ctrlWrapper(clientsController.getClientShipDetails.bind(clientsController)));
+
 
 router.post('/:id/contracts', ctrlWrapper(clientsController.uploadContract.bind(clientsController)))
-router.get('/:clientId/contracts/:contractId', ctrlWrapper(clientsController.uploadContract.bind(clientsController)))
+router.get('/:clientId/contracts/:contractId', ctrlWrapper(clientsController.getContract.bind(clientsController)))
 
 export default router;

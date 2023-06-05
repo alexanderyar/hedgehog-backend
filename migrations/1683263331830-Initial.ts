@@ -210,7 +210,7 @@ export class Initial1683263331830 implements MigrationInterface {
           new TableColumn({
             name: "status",
             type: "enum",
-            enum: Object.keys(OrderStatuses),
+            enum: [...Object.keys(OrderStatuses), 'in_progress'],
             enumName: "order_statuses",
             isNullable: false,
           }),

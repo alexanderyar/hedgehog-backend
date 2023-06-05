@@ -10,8 +10,9 @@ import {User} from "../../entity/User.entity";
 import {BadRequest} from "http-errors";
 import AppDataSource from "../../dataSource";
 import Order from "../../entity/Order.entity";
-import OrderStatuses from "../../enums/OrderStatuses";
+import OrderStatuses, {OrderStatusesMap} from "../../enums/OrderStatuses";
 import OrderByNomenclature from "../../entity/OrderByNomenclature.entity";
+import ShipIfo from "../../entity/ShipIfo.entity";
 
 // @ts-ignore
 class ClientsController {
@@ -40,6 +41,20 @@ class ClientsController {
         const client = await ClientsRepo.getClientWithContractId(id)
 
         res.json(client[0])
+    }
+
+    @UseRole([UserRoles.sales_manager, UserRoles.customer])
+    @ParsePathParams([{param: 'id', type: 'number'}])
+    async getClientShipDetails (req: Request<{id: number}>, res:Response, next: NextFunction) {
+        if (req.user.role === UserRoles.customer) {
+            if (req.user.client_id !== req.params.id) {
+                res.send(401);
+                return
+            }
+        }
+
+        const shipInfo = await ShipIfo.find({where: { client_id: req.params.id}});
+        res.send(shipInfo);
     }
 
     @UseRole(UserRoles.sales_manager)
@@ -94,26 +109,34 @@ class ClientsController {
         let absent_info: any = [];
         const user = req.user;
         const data = req.body;
-        console.log(data);
-        if (!data) {
-            throw new BadRequest("cart data is not present");
+        let shipId = data.shipId;
+
+        if (!data.cartData) {
+            res.send(new BadRequest("cart data is not present"));
+            return;
         }
         const client_id = req.user.client_id;
 
-        const client = await Client.findOneBy({ id: client_id });
+        const client = await Client.findOne({
+            where: { id: client_id },
+            relations: ['ship_infos']
+        });
+
+        if (!shipId) {
+            if(client?.ship_infos.length === 1) {
+                shipId = client?.ship_infos[0];
+            } else {
+                return res.status(400).send({message: 'wrong shipId'});
+            }
+        }
 
         const address = client!.address;
         const ceo_name = client!.ceo_name;
-        const bank_info = client!.bank_info;
-        const bill_to = client!.bill_to;
-        const ship_to = client!.ship_to;
+        const shipInfos = client!.ship_infos
 
         const info = [
             { address },
             { ceo_name },
-            { bank_info },
-            { bill_to },
-            { ship_to },
         ];
 
         info.map((item) => {
@@ -124,56 +147,63 @@ class ClientsController {
             }
         });
 
+        if(shipInfos.length === 0) {
+            absent_info.push('bank_info')
+            absent_info.push('bill_to')
+            absent_info.push('ship_to')
+        } else {
+            let hasBankInfo = false;
+            let hasBillToInfo = false;
+            let hasShipToInfo = false;
+
+            shipInfos.forEach(info => {
+                if (info.bank_info) {
+                    hasBankInfo = true
+                }
+                if (info.bill_to) {
+                    hasBillToInfo = true
+                }
+                if (info.ship_to) {
+                    hasShipToInfo = true
+                }
+            })
+            if (!hasBankInfo) {
+                absent_info.push('bank_info')
+            }
+            if (!hasBillToInfo) {
+                absent_info.push('bill_to')
+            }
+            if (!hasShipToInfo) {
+                absent_info.push('ship_to')
+            }
+        }
+
         if (absent_info.length > 0) {
-            res.status(400).json({
+            return res.status(400).json({
                 absent_info,
             });
         }
 
-        ////// order
-        //   const result = Order.create({
-        // client_id: user.client_id,
-        // FIXME status field can't be default
-        // FIXME add comment text
-        // QueryFailedError: null value in column "status" of relation "orders" violates not-null constraint
-        //     status: OrderStatuses.created,
-        //   });
-
-        //   await result.save();
-
-        //   const new_data = data.map((item: any) => {
-        //     item.order_id = result.id;
-        //     item.nomenclature_id = item.part_number;
-        //     //// FIXME price hardcoded
-        //     item.price = 666;
-        //     return item;
-        //   });
-
-        //   const by_nomenclature_result = await OrderByNomenclature.createQueryBuilder()
-        //     .insert()
-        //     .into(OrderByNomenclature)
-        //     .values(new_data)
-        //     .execute();
-
         await AppDataSource.transaction(async (transactionEntityManager) => {
+
             const result = Order.create({
                 client_id: user.client_id,
-                // FIXME status field can't be default
+                ship_id: shipId,
                 // FIXME add comment text
-                // QueryFailedError: null value in column "status" of relation "orders" violates not-null constraint
-                status: OrderStatuses.created,
+                status: OrderStatusesMap.get(OrderStatuses.created),
             });
-            await result.save();
+            await transactionEntityManager.save(result);
 
-            const new_data = data.map((item: any) => {
+
+            const new_data = data.cartData.map((item: any) => {
                 item.order_id = result.id;
-                item.nomenclature_id = item.part_number;
+                item.nomenclature_id = item.part_id;
                 //// FIXME price hardcoded
                 item.price = 666;
                 return item;
             });
 
-            await OrderByNomenclature.createQueryBuilder()
+            await transactionEntityManager.createQueryBuilder()
                 .insert()
                 .into(OrderByNomenclature)
                 .values(new_data)
@@ -187,17 +217,24 @@ class ClientsController {
     async clientsAddInfo (req: Request<{clientId: number, contractId: number}>, res:Response, next: NextFunction) {
         const info = req.body;
 
-        console.log(info);
-
         const client_id = req.user.client_id;
 
-        await Client.update(client_id!, {
-            address: info.address,
-            ceo_name: info.ceoName,
-            bank_info: info.bankInfo,
-            bill_to: info.billTo,
-            ship_to: info.shipTo,
-        });
+        if (info.address || info.ceoName) {
+            await Client.update(client_id!, {
+                address: info.address,
+                ceo_name: info.ceoName,
+            });
+        }
+
+        if (info.bankInfo || info.billTo || info.shipTo) {
+            const shipInfo = ShipIfo.create({
+                client_id,
+                bank_info: info.bankInfo,
+                bill_to: info.billTo,
+                ship_to: info.shipTo
+            })
+            await shipInfo.save();
+        }
 
         res.status(200).json({
             message: "Successfully updated",
