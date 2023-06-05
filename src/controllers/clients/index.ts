@@ -195,19 +195,15 @@ class ClientsController {
             await transactionEntityManager.save(result);
 
 
-            const new_data = data.cartData.map((item: any) => {
-                item.order_id = result.id;
-                item.nomenclature_id = item.part_id;
-                //// FIXME price hardcoded
-                item.price = 666;
-                return item;
-            });
+            const new_data = data.cartData.map((item: Partial<OrderByNomenclature>) => {
+                return OrderByNomenclature.create({
+                    order_id: result.id,
+                    nomenclature_id: item.nomenclature_id,
+                    quantity: item.quantity,
+                })
 
-            await transactionEntityManager.createQueryBuilder()
-                .insert()
-                .into(OrderByNomenclature)
-                .values(new_data)
-                .execute();
+            });
+            await transactionEntityManager.save(new_data);
         });
 
         res.status(204).json({
