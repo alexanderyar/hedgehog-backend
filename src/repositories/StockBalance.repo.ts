@@ -1,20 +1,48 @@
 import StockBalance from "../entity/StockBalance.entity";
 import dataSource from "../dataSource";
+import OrderByNomenclature from "../entity/OrderByNomenclature.entity";
+type optsByPartNumber = {
+    findByPartNumber?: string,
+    findById?: never;
+    findByReplacementId?: never
+}
+type optsByById = {
+    findById: number,
+    findByPartNumber?: never;
+    findByReplacementId?: never;
+}
+type optsByReplacementId = {
+    findByReplacementId: number,
+    findById?: never;
+    findByPartNumber?: never;
+}
+type options = optsByPartNumber | optsByById | optsByReplacementId;
 
 const StockRepository = dataSource.getRepository(StockBalance).extend({
 
-    findGrouped(skip?:number, take?:number, number?: string, id?: number) {
-        const offset = !skip? '' : `OFFSET ${skip}`;
-        const limit = !take? '' : `LIMIT ${take}`;
-        const filterByName = !number ? '' : ` and LOWER(nomenclatures.number) like LOWER('%${number}%')`;
+    findGrouped(offsetParams?: {skip?: number, take?:number}, options?: options):Promise<Record<any, any>> {
+        let offset = '';
+        let limit = '';
+        if (offsetParams) {
+            offset = !offsetParams.skip? '' : `OFFSET ${offsetParams.skip}`;
+            limit = !offsetParams.take? '' : `LIMIT ${offsetParams.take}`;
+        }
+        let filterByName = '';
         let filterById = '';
-
-        if (id) {
-            filterById = ` and nomenclature_id in (SELECT 
+        if (options) {
+            if (options.findByPartNumber ) {
+                const findByPartNumber = options.findByPartNumber;
+                filterByName = !findByPartNumber ? '' : ` and LOWER(nomenclatures.number) like LOWER('%${findByPartNumber}%')`;
+            } else if (options.findByReplacementId) {
+                filterById = ` and nomenclature_id in (SELECT 
 replacement_id as id
 FROM public.replacements
-where nomenclature_id = ${id})`;
+where nomenclature_id = ${options.findByReplacementId})`;
+            } else if (options.findById) {
+                filterById = ` and nomenclature_id=${options.findById}`
+            }
         }
+
         const query = `
 with stock as (
 SELECT
@@ -23,6 +51,8 @@ nomenclatures.number as part_number,
 brand,
 package,
 manufacture_date,
+min(price) as min_price,
+max(price) as max_price,
 sum(stock_balances.balance) as balance
 FROM 
 stock_balances
@@ -44,6 +74,8 @@ SELECT
 stock.id,
 stock.part_number,
 stock.balance,
+stock.min_price,
+stock.max_price,
 brand, 
 package, 
 manufacture_date,
@@ -61,6 +93,24 @@ left join datasheets on datasheets.nomenclature_id = stock.id
 
         return this.query(query);
     },
+    getPrice(stockData: Partial<OrderByNomenclature>) {
+        const query = `
+        SELECT
+nomenclature_id as id,
+brand,
+package,
+manufacture_date,
+min(price) as min_price,
+max(price) as max_price,
+sum(balance) as balance
+FROM 
+stock_balances
+where nomenclature_id=$1
+GROUP BY nomenclature_id, brand, package, manufacture_date
+`
+        return this.query(query, [stockData.nomenclature_id])
+    },
+
     getGroupedCount() {
         const queryBuilder = this.createQueryBuilder();
         const count = queryBuilder
