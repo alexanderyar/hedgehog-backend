@@ -14,6 +14,9 @@ export default class Order extends BaseEntity{
     @Column()
     status: OrderStatuses;
 
+    @Column()
+    ship_id: number;
+
     @Column({
         nullable: true
     })

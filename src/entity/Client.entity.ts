@@ -10,6 +10,7 @@ import { User } from "./User.entity";
 import { ClientTypes } from "../enums/ClientTypes";
 import Order from "./Order.entity";
 import Contract from "./Contract.entity";
+import ShipIfo from "./ShipIfo.entity";
 
 @Entity({
   name: "clients",
@@ -47,19 +48,13 @@ export default class Client extends BaseEntity {
   ceo_name: string;
 
   @Column()
-  bank_info: string;
-
-  @Column()
-  bill_to: string;
-
-  @Column()
-  ship_to: string;
-
-  @Column()
   country: string;
 
   @Column()
   formatted_id: string;
+
+  @OneToMany(()=> ShipIfo, (shipInfo)=> shipInfo.client)
+  ship_infos: ShipIfo[];
 
   @OneToMany(() => Order, (order) => order.client)
       // @JoinColumn({name: 'id'})
