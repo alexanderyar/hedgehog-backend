@@ -25,6 +25,12 @@ export default class OrderByNomenclature extends BaseEntity {
     @Column()
     price: number;
 
+    @Column()
+    package: string;
+
+    @Column()
+    approved_price: number;
+
     @ManyToOne(() => Order, (order)=> order.nomenclatures)
     @JoinColumn({name: 'order_id'})
     order: Order;
