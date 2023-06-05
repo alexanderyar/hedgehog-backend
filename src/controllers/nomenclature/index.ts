@@ -63,7 +63,7 @@ class NomenclatureController {
     }
   ) {
     const { skip, take, number } = findOptions;
-    const data = await StockRepository.findGrouped(skip, take, number);
+    const data = await StockRepository.findGrouped({skip, take}, {findByPartNumber:number});
     return data;
   }
 
@@ -76,10 +76,8 @@ class NomenclatureController {
     try {
       const id = parseInt(req.params.id);
       const data = await StockRepository.findGrouped(
-        undefined,
-        undefined,
-        undefined,
-        id
+          undefined,
+          {findByReplacementId: id}
       );
       return data;
     } catch (e) {
