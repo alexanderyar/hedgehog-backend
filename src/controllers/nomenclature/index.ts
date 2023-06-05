@@ -9,9 +9,8 @@ import Datasheet from "../../entity/Datasheet.entity";
 import { UploadedFile } from "express-fileupload";
 import { User } from "../../entity/User.entity";
 import UserRoles from "../../enums/UserRoles";
-// import NomenclatureRepoTest from "../../repositories/NomTest.repo";
-
 import * as XLSX from "xlsx";
+import Supplier from "../../entity/Suppliers.entity";
 
 // export interface INew_data {
 //   part_number: string | number;
@@ -227,6 +226,35 @@ class NomenclatureController {
         message: "something is wrong with the uploading new xls/xlsx",
       });
     }
+  }
+  /////////////
+  ////////////
+  async deleteStocksBySup(req: Request, res: Response, next: NextFunction) {
+    const role = req.user.role;
+    if (role !== UserRoles.supply_manager) {
+      res.status(401).send("access denied");
+    }
+    const { sup_id } = req.params;
+    console.log(sup_id);
+    const manager_id = req.user.id;
+
+    const data = await Supplier.findOne({
+      where: { id: +sup_id },
+    });
+    if (!data) {
+      res.status(404).send("sup not found");
+      return;
+    }
+    if (data!.manager_id !== manager_id) {
+      res.status(401).send("access denied");
+    }
+    await StockBalance.createQueryBuilder()
+      .delete()
+      .from(StockBalance)
+      .where("supplier_id = :sup_id", { sup_id })
+      .execute();
+
+    res.status(204).send("successfully deleted");
   }
 }
 

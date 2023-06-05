@@ -66,4 +66,8 @@ router.post(
 //////////////////////
 router.post("/parse", ctrlWrapper(nomenclature.parseNomenclature));
 
+///////////////////////
+//////////////////////
+router.delete("/del/:sup_id", ctrlWrapper(nomenclature.deleteStocksBySup));
+
 export default router;
