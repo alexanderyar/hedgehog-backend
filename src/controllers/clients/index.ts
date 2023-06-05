@@ -199,6 +199,7 @@ class ClientsController {
                 return OrderByNomenclature.create({
                     order_id: result.id,
                     nomenclature_id: item.nomenclature_id,
+                    package: item.package,
                     quantity: item.quantity,
                 })
 

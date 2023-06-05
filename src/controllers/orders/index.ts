@@ -6,11 +6,11 @@ import Order from "../../entity/Order.entity";
 import UseRole from "../../decorators/UseRole";
 import ParsePathParams from "../../decorators/ParsePathParams";
 import OrderStatuses from "../../enums/OrderStatuses";
+import OrderByNomenclature from "../../entity/OrderByNomenclature.entity";
 
 class OrdersController {
 
-    // @UseRole(UserRoles.customer)
-    async getAll(req:Request<any, any,any, {client_id?: string}>, res:Response, next:NextFunction) {
+    async getAll(req:Request<any, any,any, {client_id: number}>, res:Response, next:NextFunction) {
         if (req.user.role === UserRoles.customer) {
             const client = await Client.findOne({where: {user_id: req.user.id}});
             if (!client) {
@@ -19,16 +19,7 @@ class OrdersController {
             const data = await ordersRepo.getOrdersWithPriceByClient(client.id);
             res.json(data);
         } else if (req.user.role === UserRoles.sales_manager) {
-            const client_id = parseInt(req.query.client_id!) || undefined;
-            const orders = await Order.find({
-                where: {
-                    client_id: client_id,
-                    client: {
-                        manager_id: req.user.id
-                    }
-                },
-                relations: ['client']
-            })
+            const orders = await ordersRepo.getOrdersOfClients(req.user.id);
             res.send(orders);
         }
     }
@@ -46,18 +37,27 @@ class OrdersController {
     @UseRole(UserRoles.sales_manager)
     @ParsePathParams([{param: 'orderId', type: 'number'}])
     async updateOrderStatus(req:Request<{ orderId:number }>, res:Response, next:NextFunction) {
+        if (!req.body.newValue) {
+            res.status(400).send({message: `Wrong new status`})
+            return
+        }
         const order = await Order.findOne({
             where: {
                 id: req.params.orderId,
                 client: {manager_id: req.user.id}
             },
-            // relations:
+            relations: ['client', 'client.contract']
         })
+        if (order?.client.contract === null) {
+            res.status(400).send({message: `client doesn't have contract`})
+            return
+        }
         if (!order) {
             res.status(404);
             res.send({message: 'Order is not found'});
             return;
         }
+
         const newStatusFromBody = req.body.newValue as OrderStatuses;
 
         // @ts-ignore
@@ -71,6 +71,23 @@ class OrdersController {
         await order.save();
 
         res.send()
+    }
+
+    @UseRole(UserRoles.sales_manager)
+    @ParsePathParams([{param: 'orderId', type: 'number'}, {param: 'rowId', type: 'number'}])
+    async updatePrice(req: Request<{rowId: number, orderId: number}>, res: Response, next: NextFunction) {
+        await OrderByNomenclature.update({
+            id: req.params.rowId,
+            order: {
+                id: req.params.orderId,
+                client: {
+                    manager_id: req.user.id
+                }
+            }
+        }, {
+            approved_price: req.body.newPrice
+        })
+        res.send(200);
     }
 }
 
