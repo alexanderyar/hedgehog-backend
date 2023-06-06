@@ -33,4 +33,7 @@ export default class Supplier extends BaseEntity {
 
   @Column()
   additional_info: string;
+
+  @Column()
+  formatted_id: string;
 }

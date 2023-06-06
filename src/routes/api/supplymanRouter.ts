@@ -13,4 +13,9 @@ router.post(
   ctrlWrapper(supplyManagerControllers.AddNewSup)
 );
 
+router.patch(
+  "/supinfoedit/:manager_id",
+  ctrlWrapper(supplyManagerControllers.editSup)
+);
+
 export default router;

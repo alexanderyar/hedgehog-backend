@@ -63,6 +63,34 @@ class SupplyManagersController {
       supinfo,
     });
   }
+  @UseRole([UserRoles.supply_manager, UserRoles.admin])
+  @ParsePathParams([{ param: "manager_id", type: "number" }])
+  async editSup(req: Request, res: Response) {
+    const { manager_id } = req.params;
+    const result = await User.findOne({
+      where: {
+        id: +manager_id,
+      },
+    });
+    if (+manager_id !== req.user.id || !result) {
+      throw new Unauthorized("Access denied");
+    }
+    const info_to_update = req.body;
+
+    const data = await Supplier.findOne({
+      where: { id: +info_to_update.id },
+    });
+    if (!data) {
+      res.status(404).send("sup not found");
+    }
+    await Supplier.update(
+      { id: +info_to_update.id },
+      {
+        ...info_to_update,
+      }
+    );
+    res.status(200).send("Fields updated successfully");
+  }
 }
 
 export default new SupplyManagersController();
