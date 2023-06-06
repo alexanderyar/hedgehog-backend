@@ -1,6 +1,6 @@
-import { ctrlWrapper } from "../../helpers/ctrlWrapper";
-import { getSupInfo } from "./getSupInfo";
+// import { ctrlWrapper } from "../../helpers/ctrlWrapper";
+// import { getSupInfo } from "./getSupInfo";
 
-export default {
-  getSupInfo: ctrlWrapper(getSupInfo),
-};
+// export default {
+//   getSupInfo: ctrlWrapper(getSupInfo),
+// };
