@@ -30,12 +30,28 @@ class SupplyManagersController {
     const new_sup_info = req.body;
     console.log(new_sup_info);
 
+    //   0003CNYMS
+
     const result = Supplier.create({
       ...new_sup_info,
       manager_id,
-      formatted_id: "qwe",
+      formatted_id: "xxx",
     });
+
     await result.save();
+
+    const new_sup = await Supplier.findOne({
+      where: { email: new_sup_info.email },
+    });
+
+    const number = new_sup!.id?.toString().padStart(4, "0");
+    const name = new_sup_info.company_name.substring(0, 3);
+    const type = new_sup_info.type.substring(0, 1);
+    const formatted_id = `${number}${name}${type}S`;
+
+    await Supplier.update(new_sup!.id, {
+      formatted_id: formatted_id.toUpperCase(),
+    });
 
     res.status(201).json({
       message:
