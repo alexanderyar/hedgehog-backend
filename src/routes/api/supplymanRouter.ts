@@ -8,6 +8,11 @@ router.get(
   ctrlWrapper(supplyManagerControllers.getSupInfo)
 );
 
+router.get(
+  "/:manager_id/:supplier_id",
+  ctrlWrapper(supplyManagerControllers.getSupById)
+);
+
 router.post(
   "/:manager_id/addsup/",
   ctrlWrapper(supplyManagerControllers.AddNewSup)
