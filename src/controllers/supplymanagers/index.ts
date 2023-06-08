@@ -14,13 +14,10 @@ import Supplier from "../../entity/Suppliers.entity";
 import { Unauthorized } from "http-errors";
 
 class SupplyManagersController {
-  @UseRole([UserRoles.supply_manager, UserRoles.admin])
-  @ParsePathParams([{ param: "manager_id", type: "number" }])
+  @UseRole([UserRoles.supply_manager])
   async AddNewSup(req: Request, res: Response) {
-    const manager_id = req.params.manager_id;
     const data = await User.findOne({
-      /////  even though I'm using decorator, i still need to redefine manager_id type. wtf?
-      where: { id: +manager_id },
+      where: { id: req.user.id },
     });
 
     if (!data) {
@@ -34,22 +31,18 @@ class SupplyManagersController {
 
     const result = Supplier.create({
       ...new_sup_info,
-      manager_id,
+      manager_id: req.user.id,
       formatted_id: "xxx",
     });
 
     await result.save();
 
-    const new_sup = await Supplier.findOne({
-      where: { email: new_sup_info.email },
-    });
-
-    const number = new_sup!.id?.toString().padStart(4, "0");
-    const name = new_sup_info.company_name.substring(0, 3);
-    const type = new_sup_info.type.substring(0, 1);
+    const number = result!.id?.toString().padStart(4, "0");
+    const name = result.company_name.substring(0, 3);
+    const type = result.type.substring(0, 1);
     const formatted_id = `${number}${name}${type}S`;
 
-    await Supplier.update(new_sup!.id, {
+    await Supplier.update(result!.id, {
       formatted_id: formatted_id.toUpperCase(),
     });
 
@@ -59,37 +52,35 @@ class SupplyManagersController {
     });
   }
 
-  @UseRole([UserRoles.supply_manager, UserRoles.admin])
-  @ParsePathParams([{ param: "manager_id", type: "number" }])
+  @UseRole([UserRoles.supply_manager])
   async getSupInfo(req: Request, res: Response) {
-    const { manager_id } = req.params;
     const result = await User.findOne({
       where: {
-        id: +manager_id,
+        id: req.user.id,
       },
     });
-    if (+manager_id !== req.user.id || !result) {
+    if (!result) {
       throw new Unauthorized("Access denied");
     }
 
-    ///// since manager_id is a user id with role "supply_manager"
-    const supinfo = await Supplier.find({ where: { manager_id: +manager_id } });
-    //   console.log(JSON.stringify(supinfo));
+    const supinfo = await Supplier.find({
+      where: { manager_id: req.user.id },
+    });
 
     res.status(200).json({
       supinfo,
     });
   }
-  @UseRole([UserRoles.supply_manager, UserRoles.admin])
-  @ParsePathParams([{ param: "manager_id", type: "number" }])
-  async editSup(req: Request, res: Response) {
-    const { manager_id } = req.params;
+  @UseRole([UserRoles.supply_manager])
+  @ParsePathParams([{ param: "supplier_id", type: "number" }])
+  async editSup(req: Request<{ supplier_id: number }>, res: Response) {
+    const { supplier_id } = req.params;
     const result = await User.findOne({
       where: {
-        id: +manager_id,
+        id: req.user.id,
       },
     });
-    if (+manager_id !== req.user.id || !result) {
+    if (!result) {
       throw new Unauthorized("Access denied");
     }
     const info_to_update = req.body;
@@ -109,26 +100,26 @@ class SupplyManagersController {
     res.status(200).send("Fields updated successfully");
   }
 
-  @UseRole([UserRoles.supply_manager, UserRoles.admin])
+  @UseRole([UserRoles.supply_manager])
   @ParsePathParams([
     { param: "manager_id", type: "number" },
     { param: "supplier_id", type: "number" },
   ])
-  async getSupById(req: Request, res: Response) {
-    const { manager_id } = req.params;
+  async getSupById(req: Request<{ supplier_id: number }>, res: Response) {
     const { supplier_id } = req.params;
+
     const result = await User.findOne({
       where: {
-        id: +manager_id,
+        id: req.user.id,
       },
     });
-    if (+manager_id !== req.user.id || !result) {
+    if (!result) {
       throw new Unauthorized("Access denied");
     }
     const sup = await Supplier.findOne({
       where: {
         id: +supplier_id,
-        manager_id: +manager_id,
+        manager_id: req.user.id,
       },
     });
     if (!sup) {

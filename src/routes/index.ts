@@ -17,7 +17,6 @@ router.use(authenticate);
 router.use("/nomenclature", nomenclatureRouter);
 router.use("/orders", ordersRouter);
 router.use("/clients", clientsRouter);
-// router.use("/buyers", buyerRouter);
-router.use("/supplymanagers", supplymanRouter);
+router.use("/suppliers", supplymanRouter);
 
 export default router;
