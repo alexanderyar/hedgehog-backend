@@ -6,7 +6,8 @@ import ordersRouter from "./api/ordersRouter";
 import clientsRouter from "./api/clientsRouter";
 import { authenticate } from "../middlewares";
 //////////
-import buyerRouter from "./api/buyerRouter";
+// import buyerRouter from "./api/buyerRouter";
+import supplymanRouter from "./api/supplymanRouter";
 
 const router = express.Router();
 router.use("/services", serviceRouter);
@@ -16,6 +17,6 @@ router.use(authenticate);
 router.use("/nomenclature", nomenclatureRouter);
 router.use("/orders", ordersRouter);
 router.use("/clients", clientsRouter);
-router.use("/buyers", buyerRouter);
+router.use("/suppliers", supplymanRouter);
 
 export default router;
