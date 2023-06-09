@@ -204,7 +204,8 @@ class NomenclatureController {
       const range = XLSX.utils.decode_range(worksheet["!ref"]!);
       const startRow = range.s.r + 1; // Start from row 2
       const endRow = range.e.r; // Last row
-
+      console.log(`  start - ${JSON.stringify(startRow)}`);
+      console.log(`  end - ${JSON.stringify(endRow)}`);
       ///////////////////////// dummy data from front-end
       const dummy_data: { [key: string]: string } = {
         0: "part_number",
@@ -220,14 +221,27 @@ class NomenclatureController {
       /// for nomenclatures
       const part_numbers = [];
 
+      // for non-validated
+      const failed_rows: {}[] = [];
+
       for (let row = startRow; row <= endRow; row++) {
-        const line: { [key: string]: string } = {}; /// object represents a single row in a table
+        const line: { [key: string]: string | string[] } = {}; /// object represents a single row in a table
+        line.reasons = []; // reasons of failure
 
         for (let key in dummy_data) {
           const cellAddress = XLSX.utils.encode_cell({ r: row, c: +key }); // Column N
-          const cellValue = worksheet[cellAddress]?.v;
+          let cellValue = worksheet[cellAddress]?.v;
 
           const column_name = dummy_data[key]; // extracting value of each dummy_data
+
+          if (column_name === "date" && cellValue !== undefined) {
+            const regex = /\d{2}/; // Regular expression to match the first two numeric symbols
+            const match = regex.exec(cellValue);
+            if (match) {
+              const transformedDate = match[0] + "+";
+              cellValue = transformedDate;
+            }
+          }
 
           line[column_name] = cellValue; // writing into (e.g.) line.part_number = NNNNNN
 
@@ -236,11 +250,28 @@ class NomenclatureController {
           }
         }
 
+        // checking by part_number. If it is not there, I guess, the rest doesnt matter
+        if (line.part_number === undefined) {
+          continue;
+        }
+
         // addding supplier_id;
         line.supplier_id = supplier_id;
 
         // FIXME !!!!! hardcoded nomenclature_id
         line.nomenclature_id = "1";
+
+        // validation
+        if (+line.balance < 0) {
+          line.reasons.push("balance");
+        }
+        if (line.date === undefined) {
+          line.reasons.push("date");
+        }
+        if (line.reasons.length > 0) {
+          failed_rows.push(line);
+          continue;
+        }
 
         values.push(line);
       }
@@ -248,6 +279,9 @@ class NomenclatureController {
       if (!values || !part_numbers) {
         res.status(400).send("parsing error");
       }
+
+      console.log(`failed_rows - ${JSON.stringify(failed_rows)}`);
+      console.log(`values - ${JSON.stringify(values)}`);
       ////////////////////////
       /////////////////////// plz leave it here for for a while
       // const workbook = await XLSX.read(file.data);
@@ -263,31 +297,39 @@ class NomenclatureController {
       // }
       ////////////////////////
 
-      await StockBalance.createQueryBuilder()
-        .delete()
-        .from(StockBalance)
-        .where("supplier_id = :supplier_id", { supplier_id })
-        .execute();
+      // await StockBalance.createQueryBuilder()
+      //   .delete()
+      //   .from(StockBalance)
+      //   .where("supplier_id = :supplier_id", { supplier_id })
+      //   .execute();
 
-      const queryBuilderNom = Nomenclature.createQueryBuilder()
-        .insert()
-        .orIgnore()
-        .into(Nomenclature)
-        .values(part_numbers);
+      // const queryBuilderNom = Nomenclature.createQueryBuilder()
+      //   .insert()
+      //   .orIgnore()
+      //   .into(Nomenclature)
+      //   .values(part_numbers);
 
-      // await queryBuilderNom.execute();
+      // // await queryBuilderNom.execute();
 
-      const queryBuilder = StockBalance.createQueryBuilder()
-        .insert()
-        .into(StockBalance)
-        .values(values);
+      // const queryBuilder = StockBalance.createQueryBuilder()
+      //   .insert()
+      //   .into(StockBalance)
+      //   .values(values);
 
-      // await queryBuilder.execute();
+      // // await queryBuilder.execute();
 
-      await AppDataSource.transaction(async (transactionalEntityManager) => {
-        await queryBuilderNom.execute();
-        await queryBuilder.execute();
-      });
+      // await AppDataSource.transaction(async (transactionalEntityManager) => {
+      //   await queryBuilderNom.execute();
+      //   await queryBuilder.execute();
+      // });
+
+      if (failed_rows.length > 0) {
+        res.status(207).json({
+          success: `everything but ${JSON.stringify(failed_rows.length)} row`,
+          failure: failed_rows,
+        });
+        return;
+      }
 
       res.status(201).send("sucessfully updated");
     } catch (e) {
