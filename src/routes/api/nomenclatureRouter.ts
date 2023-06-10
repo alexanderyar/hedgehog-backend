@@ -64,7 +64,10 @@ router.post(
 );
 ///////////////////////
 //////////////////////
-router.post("/parse", ctrlWrapper(nomenclature.parseNomenclature));
+router.post(
+  "/parse/:supplier_id/",
+  ctrlWrapper(nomenclature.parseNomenclature)
+);
 
 ///////////////////////
 //////////////////////
