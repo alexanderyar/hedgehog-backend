@@ -211,7 +211,7 @@ class NomenclatureController {
         0: "part_number",
         1: "ignore",
         2: "balance",
-        3: "date",
+        3: "manufacture_date",
       };
       //////////////////////////
 
@@ -234,7 +234,7 @@ class NomenclatureController {
 
           const column_name = dummy_data[key]; // extracting value of each dummy_data
 
-          if (column_name === "date" && cellValue !== undefined) {
+          if (column_name === " manufacture_date" && cellValue !== undefined) {
             const regex = /\d{2}/; // Regular expression to match the first two numeric symbols
             const match = regex.exec(cellValue);
             if (match) {
@@ -266,7 +266,7 @@ class NomenclatureController {
           line.reasons.push("balance");
         }
         if (line.date === undefined) {
-          line.reasons.push("date");
+          line.reasons.push("manufacture_date");
         }
         if (line.reasons.length > 0) {
           failed_rows.push(line);
