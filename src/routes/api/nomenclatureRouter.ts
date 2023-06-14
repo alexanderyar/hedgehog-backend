@@ -1,6 +1,8 @@
 import express, { NextFunction, Request, Response } from "express";
 import nomenclature from "../../controllers/nomenclature";
 import { ctrlWrapper } from "../../helpers";
+import { validateBody } from "../../middlewares";
+import { rowDataJoiSchema } from "../../models/rowData";
 
 const router = express.Router();
 
@@ -65,12 +67,22 @@ router.post(
 ///////////////////////
 //////////////////////
 router.post(
-  "/parse/:supplier_id/",
+  "/parse/:formatted_id/",
   ctrlWrapper(nomenclature.parseNomenclature)
 );
 
 ///////////////////////
 //////////////////////
 router.delete("/del/:sup_id", ctrlWrapper(nomenclature.deleteStocksBySup));
+
+// Joi validation
+router.post(
+  "/addrow/",
+  validateBody(rowDataJoiSchema),
+  ctrlWrapper(nomenclature.addResolvedRow)
+);
+
+// storing deleted rows for analytycs
+router.post("/deletedrow/", ctrlWrapper(nomenclature.addDeletedRowAnalytycs));
 
 export default router;
