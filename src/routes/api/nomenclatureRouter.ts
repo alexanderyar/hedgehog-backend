@@ -7,53 +7,33 @@ const router = express.Router();
 router.get(
   "/",
   ctrlWrapper(
-    (
-      req: Request<
-        null,
-        null,
-        null,
-        {
-          skip?: string;
-          take?: string;
-        }
-      >,
-      res: Response,
-      next: NextFunction
-    ) => {
-      nomenclature.getAll(req, res, next);
-    }
+      nomenclature.getAll.bind(nomenclature)
   )
 );
 router.get(
+    "/row",
+    ctrlWrapper(nomenclature.getAllRow.bind(nomenclature))
+);
+router.get(
+    "/:id/replacement/row",
+    ctrlWrapper(nomenclature.getReplacementRow.bind(nomenclature))
+);
+router.get(
   "/available",
-  ctrlWrapper(
-    (
-      req: Request<
-        null,
-        null,
-        null,
-        {
-          skip?: string;
-          take?: string;
-          number?: string;
-        }
-      >,
-      res: Response,
-      next: NextFunction,
-      findOptions: {
-        skip: number;
-        take: number;
-        number?: string;
-      }
-    ) => {
-      nomenclature.getAvailable(req, res, next, findOptions);
-    }
-  )
+  ctrlWrapper(nomenclature.getAvailable.bind(nomenclature))
 );
 router.get(
   "/:id/replacement",
   ctrlWrapper(nomenclature.getReplacement.bind(nomenclature))
 );
+router.post(
+  "/:id/replacement",
+  ctrlWrapper(nomenclature.addReplacement.bind(nomenclature))
+);
+
+router.delete('/:id/replacement/:replacementId', nomenclature.removeReplacement.bind(nomenclature))
+
+
 router.get(
   "/:id/datasheet",
   ctrlWrapper(nomenclature.getDatasheet.bind(nomenclature))
@@ -69,5 +49,7 @@ router.post("/parse", ctrlWrapper(nomenclature.parseNomenclature));
 ///////////////////////
 //////////////////////
 router.delete("/del/:sup_id", ctrlWrapper(nomenclature.deleteStocksBySup));
+
+router.get('/:id', ctrlWrapper(nomenclature.getById))
 
 export default router;
