@@ -10,6 +10,8 @@ import * as XLSX from "xlsx";
 import Supplier from "../../entity/Suppliers.entity";
 import ParsePathParams from "../../decorators/ParsePathParams";
 import UseRole from "../../decorators/UseRole";
+import AppDataSource from "../../dataSource";
+
 
 // export interface INew_data {
 //   part_number: string | number;
@@ -34,10 +36,7 @@ class NomenclatureController {
       take: number;
     }
   ) {
-
     const data = await StockRepository.getNomenclatures()
-
-
     return data;
   }
 
@@ -79,7 +78,10 @@ class NomenclatureController {
     }
   ) {
     const { skip, take, number } = findOptions;
-    const data = await StockRepository.findGrouped({skip, take}, {findByPartNumber:number});
+    const data = await StockRepository.findGrouped(
+      { skip, take },
+      { findByPartNumber: number }
+    );
     return data;
   }
 
@@ -91,10 +93,9 @@ class NomenclatureController {
   ) {
     try {
       const id = parseInt(req.params.id);
-      const data = await StockRepository.findGrouped(
-          undefined,
-          {findByReplacementId: id}
-      );
+      const data = await StockRepository.findGrouped(undefined, {
+        findByReplacementId: id,
+      });
       return data;
     } catch (e) {
       res.status(400);
@@ -224,10 +225,17 @@ class NomenclatureController {
   /////////////
   async parseNomenclature(req: Request, res: Response, next: NextFunction) {
     const role = req.user.role;
+    const { supplier_id } = req.params;
+    console.log(supplier_id);
     if (role !== UserRoles.supply_manager) {
       res.status(401).send("access denied");
     }
-
+    const result = await Supplier.findOne({
+      where: { id: +supplier_id, manager_id: req.user.id },
+    });
+    if (!result) {
+      res.status(401).send("access denied. not enough rights");
+    }
     try {
       if (!req.files || !req.files.file) {
         res.status(400);
@@ -254,30 +262,134 @@ class NomenclatureController {
       const range = XLSX.utils.decode_range(worksheet["!ref"]!);
       const startRow = range.s.r + 1; // Start from row 2
       const endRow = range.e.r; // Last row
+      console.log(`  start - ${JSON.stringify(startRow)}`);
+      console.log(`  end - ${JSON.stringify(endRow)}`);
+      ///////////////////////// dummy data from front-end
+      const dummy_data: { [key: string]: string } = {
+        0: "part_number",
+        1: "ignore",
+        2: "balance",
+        3: "manufacture_date",
+      };
+      //////////////////////////
 
       // Extract values from column A
       const values = [];
+
+      /// for nomenclatures
+      const part_numbers = [];
+
+      // for non-validated
+      const failed_rows: {}[] = [];
+
       for (let row = startRow; row <= endRow; row++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row, c: 0 }); // Column A
-        const cellValue = worksheet[cellAddress]?.v; // Get the cell value
-        if (cellValue) {
-          values.push(cellValue);
+        const line: { [key: string]: string | string[] } = {}; /// object represents a single row in a table
+        line.reasons = []; // reasons of failure
+
+        for (let key in dummy_data) {
+          const cellAddress = XLSX.utils.encode_cell({ r: row, c: +key }); // Column N
+          let cellValue = worksheet[cellAddress]?.v;
+
+          const column_name = dummy_data[key]; // extracting value of each dummy_data
+
+          if (column_name === " manufacture_date" && cellValue !== undefined) {
+            const regex = /\d{2}/; // Regular expression to match the first two numeric symbols
+            const match = regex.exec(cellValue);
+            if (match) {
+              const transformedDate = match[0] + "+";
+              cellValue = transformedDate;
+            }
+          }
+
+          line[column_name] = cellValue; // writing into (e.g.) line.part_number = NNNNNN
+
+          if (column_name === "part_number") {
+            part_numbers.push({ part_number: cellValue });
+          }
         }
+
+        // checking by part_number. If it is not there, I guess, the rest doesnt matter
+        if (line.part_number === undefined) {
+          continue;
+        }
+
+        // addding supplier_id;
+        line.supplier_id = supplier_id;
+
+        // FIXME !!!!! hardcoded nomenclature_id
+        line.nomenclature_id = "1";
+
+        // validation
+        if (+line.balance < 0) {
+          line.reasons.push("balance");
+        }
+        if (line.date === undefined) {
+          line.reasons.push("manufacture_date");
+        }
+        if (line.reasons.length > 0) {
+          failed_rows.push(line);
+          continue;
+        }
+
+        values.push(line);
       }
 
-      const new_data = values.map((value) => {
-        return { part_number: value };
-      });
+      if (!values || !part_numbers) {
+        res.status(400).send("parsing error");
+      }
 
-      const queryBuilder = Nomenclature.createQueryBuilder()
-        .insert()
-        .orIgnore()
-        .into(Nomenclature)
-        .values(new_data);
+      console.log(`failed_rows - ${JSON.stringify(failed_rows)}`);
+      console.log(`values - ${JSON.stringify(values)}`);
+      ////////////////////////
+      /////////////////////// plz leave it here for for a while
+      // const workbook = await XLSX.read(file.data);
+      // const worksheet = workbook.Sheets[workbook.SheetNames[0]]; // Assuming you want to extract values from the first sheet
+      // // Find the range of the worksheet
+      // const range = XLSX.utils.decode_range(worksheet["!ref"]!);
+      // const startRow = range.s.r + 1; // Start from row 2
+      // const endRow = range.e.r; // Last row
+      // const cellAddress = XLSX.utils.encode_cell({ r: row, c: 0 }); // Column A
+      // const cellValue = worksheet[cellAddress]?.v; // Get the cell value
+      // if (cellValue) {
+      //   values.push(cellValue);
+      // }
+      ////////////////////////
 
-      await queryBuilder.execute();
+      // await StockBalance.createQueryBuilder()
+      //   .delete()
+      //   .from(StockBalance)
+      //   .where("supplier_id = :supplier_id", { supplier_id })
+      //   .execute();
 
-      res.status(201).send("success");
+      // const queryBuilderNom = Nomenclature.createQueryBuilder()
+      //   .insert()
+      //   .orIgnore()
+      //   .into(Nomenclature)
+      //   .values(part_numbers);
+
+      // // await queryBuilderNom.execute();
+
+      // const queryBuilder = StockBalance.createQueryBuilder()
+      //   .insert()
+      //   .into(StockBalance)
+      //   .values(values);
+
+      // // await queryBuilder.execute();
+
+      // await AppDataSource.transaction(async (transactionalEntityManager) => {
+      //   await queryBuilderNom.execute();
+      //   await queryBuilder.execute();
+      // });
+
+      if (failed_rows.length > 0) {
+        res.status(207).json({
+          success: `everything but ${JSON.stringify(failed_rows.length)} row`,
+          failure: failed_rows,
+        });
+        return;
+      }
+
+      res.status(201).send("sucessfully updated");
     } catch (e) {
       console.log(e);
       res.status(400);
@@ -287,8 +399,9 @@ class NomenclatureController {
       });
     }
   }
-  /////////////
-  ////////////
+  ////////////////////////////////////
+
+  ////////////////////////////////////
   async deleteStocksBySup(req: Request, res: Response, next: NextFunction) {
     const role = req.user.role;
     if (role !== UserRoles.supply_manager) {

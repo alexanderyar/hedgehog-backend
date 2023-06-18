@@ -5,8 +5,6 @@ import serviceRouter from "./api/serviceRouter";
 import ordersRouter from "./api/ordersRouter";
 import clientsRouter from "./api/clientsRouter";
 import { authenticate } from "../middlewares";
-//////////
-// import buyerRouter from "./api/buyerRouter";
 import supplymanRouter from "./api/supplymanRouter";
 
 const router = express.Router();
