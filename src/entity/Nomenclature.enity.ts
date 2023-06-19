@@ -1,5 +1,9 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {BaseEntity, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import Brands from "../enums/Brands";
+import Replacement from "./Replacement";
+import nomenclature from "../controllers/nomenclature";
+
+
 @Entity({ name: "nomenclatures" })
 export default class Nomenclature extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -10,16 +14,11 @@ export default class Nomenclature extends BaseEntity {
   })
   part_number: string;
 
-  // @Column({})
-  // brand: Brands;
-
-  // @Column({
-  //   length: 128,
-  // })
-  // package: string;
-
-  // @Column({
-  //   name: "manufacture_date",
-  // })
-  // manufactureDate: string;
+  @ManyToMany(()=> Nomenclature, (nomenclature) => nomenclature.replacements)
+  @JoinTable({
+    name: 'replacements',
+    joinColumn: {name: 'nomenclature_id'},
+    inverseJoinColumn: {name: 'replacement_id'}
+  })
+  replacements: Nomenclature[];
 }

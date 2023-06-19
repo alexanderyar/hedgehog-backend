@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import paginated from "../../decorators/paginated";
 import Nomenclature from "../../entity/Nomenclature.enity";
 import StockBalance from "../../entity/StockBalance.entity";
 import StockRepository from "../../repositories/StockBalance.repo";
 import Replacement from "../../entity/Replacement";
-import NomenclatureRepo from "../../repositories/Nomenclature.repo";
 import Datasheet from "../../entity/Datasheet.entity";
-import { UploadedFile } from "express-fileupload";
-import { User } from "../../entity/User.entity";
 import UserRoles from "../../enums/UserRoles";
 import * as XLSX from "xlsx";
 import Supplier from "../../entity/Suppliers.entity";
+import ParsePathParams from "../../decorators/ParsePathParams";
+import UseRole from "../../decorators/UseRole";
 import AppDataSource from "../../dataSource";
+
 
 // export interface INew_data {
 //   part_number: string | number;
@@ -36,8 +36,22 @@ class NomenclatureController {
       take: number;
     }
   ) {
-    const data = await Nomenclature.find(findOptions);
+    const data = await StockRepository.getNomenclatures()
     return data;
+  }
+
+  async getAllRow(req:Request, res:Response, next:NextFunction) {
+    let partFilter = '';
+    if (req.query.partNumber) {
+      // partFilter = {part_number:Like(`%${req.query.partNumber}%`)};
+      partFilter = `"number" ILIKE '%${req.query.partNumber}%'`;
+    }
+    const data = await Nomenclature.getRepository().createQueryBuilder()
+        .select()
+        .where(partFilter)
+        .getMany();
+
+    res.send(data)
   }
 
   @paginated<StockBalance>({
@@ -86,6 +100,50 @@ class NomenclatureController {
     } catch (e) {
       res.status(400);
       res.send({ message: "Wrong nomenclature id" });
+    }
+  }
+
+  @ParsePathParams([{param: 'id', type: 'number'}])
+  async getReplacementRow(
+      req: Request<{ id: number }>,
+      res: Response,
+      next: NextFunction
+  ) {
+    const repl = await Replacement.find({
+      where: {
+        nomenclature_id: req.params.id
+      },
+      relations: ['replacement']
+    })
+    res.send(repl);
+  }
+
+  @UseRole(UserRoles.supply_manager)
+  @ParsePathParams([{param: 'id', type: 'number'}])
+  async addReplacement(
+      req: Request<{ id: number }, {replacementId: number}>,
+      res: Response,
+      next: NextFunction
+  ) {
+    if (!req.body.replacementId || typeof req.body.replacementId !== "number") {
+      res.status(400);
+      res.send({message: 'Wrong replacement Id'});
+      return
+    }
+
+    const replacement = Replacement.create({
+      nomenclature_id: req.params.id,
+      replacement_id: req.body.replacementId
+    })
+
+    try {
+      await replacement.save()
+      res.send(201);
+    } catch (e: any) {
+      // FIXME it should be enum or something like this.
+      if (e.code === '23505') {
+        res.sendStatus(409);
+      }
     }
   }
 
@@ -370,6 +428,31 @@ class NomenclatureController {
       .execute();
 
     res.status(204).send("successfully deleted");
+  }
+
+  @ParsePathParams([{param: 'id', type: 'number'}])
+  async getById(req:Request<{
+    id: number
+  }>, res:Response, next:NextFunction) {
+    const { id } = req.params;
+    const noms = await StockRepository.getInfoById(id);
+    if(noms.length === 0) {
+      return res.sendStatus(404);
+    }
+    res.send(noms[0]);
+  }
+
+  @UseRole(UserRoles.supply_manager)
+  @ParsePathParams([{param:'replacementId', type: 'number'}, {param: 'id', type: "number"}])
+  async removeReplacement(req:Request<{
+    id: number,
+    replacementId: number
+  }>, res:Response, next:NextFunction) {
+    await Replacement.delete({
+        nomenclature_id: req.params.id,
+        replacement_id: req.params.replacementId
+    })
+    res.send(200);
   }
 }
 
