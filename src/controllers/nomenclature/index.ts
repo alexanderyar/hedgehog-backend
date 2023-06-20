@@ -178,7 +178,7 @@ class NomenclatureController {
     if (!result) {
       res.status(401).send("access denied. not enough rights");
     }
-    const supplier_id = result!.id.toString();
+    const supplier_id = result!.id;
 
     try {
       if (!req.files || !req.files.file) {
@@ -227,7 +227,7 @@ class NomenclatureController {
       const failed_rows: {}[] = [];
 
       for (let row = startRow; row <= endRow; row++) {
-        const line: { [key: string]: string | string[] } = {}; /// object represents a single row in a table
+        const line: { [key: string]: string | string[] | number } = {}; /// object represents a single row in a table
         line.reasons = []; // reasons of failure
 
         for (let key in parsed_data) {
