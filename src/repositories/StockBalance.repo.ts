@@ -119,6 +119,65 @@ GROUP BY nomenclature_id, brand, package, manufacture_date
             .groupBy('stock_balances.nomenclature_id').having('sum(stock_balances.balance) > 0').getCount();
 
         return count;
+    },
+
+    getNomenclatures() {
+        const query = `
+        SELECT 
+        nomenclatures.id,
+nomenclatures.number as part_number,
+CASE WHEN count(datasheets.id) > 0 
+    then true
+    else false
+END AS has_datasheet,
+CASE WHEN count(replacements.id) > 0 
+    then true
+    else false
+END AS present
+from nomenclatures
+left join datasheets on nomenclatures.id = datasheets.nomenclature_id
+left join replacements on nomenclatures.id = replacements.nomenclature_id
+group by nomenclatures.id, nomenclatures.number
+        `
+        return this.query(query)
+    },
+
+    async getInfoById(id: number) {
+        const query = `
+            WITH 
+            datasheet as (
+                Select 
+                    id,
+                    nomenclature_id
+                    from 
+                    datasheets
+                    where nomenclature_id=$1
+                    limit 1
+            ),
+            has_replacement as (
+                SELECT 
+                nomenclature_id,
+                true::boolean as present
+                FROM public.replacements
+                where nomenclature_id = $1
+                Group By nomenclature_id
+            )
+            select 
+            nomenclatures.*,
+            CASE WHEN datasheet.id IS NULL 
+                THEN false 
+                ELSE true 
+            END AS has_datasheet,
+            COALESCE(has_replacement.present, false) as present
+            from
+            nomenclatures
+            left join datasheet on nomenclatures.id = datasheet.nomenclature_id
+            left join has_replacement on has_replacement.nomenclature_id = nomenclatures.id
+            where
+            nomenclatures.id = $1
+        `;
+
+        return await this.query(query, [id])
     }
 })
 

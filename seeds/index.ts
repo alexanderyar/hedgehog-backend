@@ -111,12 +111,26 @@ const suppliers: DeepPartial<Supplier>[] = [
     {
         id:1,
         manager_id: 4,
-        name: 'someone'
+        company_name: 'someone',
+        company_name_chinese: 'someone',
+        address: 'address',
+        bank_info: 'bank_info',
+        contact_name: 'contact_name',
+        email: 'email',
+        type: 'manufacturer',
+        formatted_id: 'formatted_id'
     },
     {
         id:2,
         manager_id: 4,
-        name: 'space X'
+        company_name: 'space X',
+        company_name_chinese: 'space X',
+        address: 'address',
+        bank_info: 'bank_info',
+        contact_name: 'contact_name',
+        email: 'email',
+        type: 'manufacturer',
+        formatted_id: 'formatted_id'
     }
 ]
 

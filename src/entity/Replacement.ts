@@ -1,4 +1,5 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import Nomenclature from "./Nomenclature.enity";
 
 @Entity({
     name: 'replacements'
@@ -12,4 +13,12 @@ export default class Replacement extends BaseEntity {
 
     @Column()
     replacement_id: number;
+
+    @ManyToOne(() => Nomenclature)
+    @JoinColumn({name:'nomenclature_id'})
+    nomenclature: Nomenclature
+
+    @ManyToOne(() => Nomenclature)
+    @JoinColumn({name:'replacement_id'})
+    replacement: Nomenclature
 }
