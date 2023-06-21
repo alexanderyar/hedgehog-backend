@@ -6,7 +6,7 @@ export const validateBody = (schema: Schema) => {
   const func: RequestHandler = (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) {
-      throw new BadRequest("Oops, bad request");
+      throw new BadRequest("Oops, bad VALIDATION request");
     }
     next();
   };

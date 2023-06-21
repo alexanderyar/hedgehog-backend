@@ -12,7 +12,6 @@ import ParsePathParams from "../../decorators/ParsePathParams";
 import UseRole from "../../decorators/UseRole";
 import AppDataSource from "../../dataSource";
 
-
 // export interface INew_data {
 //   part_number: string | number;
 // }
@@ -225,17 +224,22 @@ class NomenclatureController {
   /////////////
   async parseNomenclature(req: Request, res: Response, next: NextFunction) {
     const role = req.user.role;
-    const { supplier_id } = req.params;
-    console.log(supplier_id);
+    const { formatted_id } = req.params;
+    console.log(formatted_id);
+    console.log(req.body);
+    const parsed_data = await JSON.parse(req.body.data);
+    console.log(parsed_data);
     if (role !== UserRoles.supply_manager) {
       res.status(401).send("access denied");
     }
     const result = await Supplier.findOne({
-      where: { id: +supplier_id, manager_id: req.user.id },
+      where: { formatted_id: formatted_id, manager_id: req.user.id },
     });
     if (!result) {
       res.status(401).send("access denied. not enough rights");
     }
+    const supplier_id = result!.id;
+
     try {
       if (!req.files || !req.files.file) {
         res.status(400);
@@ -265,12 +269,12 @@ class NomenclatureController {
       console.log(`  start - ${JSON.stringify(startRow)}`);
       console.log(`  end - ${JSON.stringify(endRow)}`);
       ///////////////////////// dummy data from front-end
-      const dummy_data: { [key: string]: string } = {
-        0: "part_number",
-        1: "ignore",
-        2: "balance",
-        3: "manufacture_date",
-      };
+      // const dummy_data: { [key: string]: string } = {
+      //   0: "part_number",
+      //   1: "ignore",
+      //   2: "balance",
+      //   3: "manufacture_date",
+      // };
       //////////////////////////
 
       // Extract values from column A
@@ -283,16 +287,16 @@ class NomenclatureController {
       const failed_rows: {}[] = [];
 
       for (let row = startRow; row <= endRow; row++) {
-        const line: { [key: string]: string | string[] } = {}; /// object represents a single row in a table
+        const line: { [key: string]: string | string[] | number } = {}; /// object represents a single row in a table
         line.reasons = []; // reasons of failure
 
-        for (let key in dummy_data) {
+        for (let key in parsed_data) {
           const cellAddress = XLSX.utils.encode_cell({ r: row, c: +key }); // Column N
           let cellValue = worksheet[cellAddress]?.v;
 
-          const column_name = dummy_data[key]; // extracting value of each dummy_data
+          const column_name = parsed_data[key]; // extracting value of each parsed_data
 
-          if (column_name === " manufacture_date" && cellValue !== undefined) {
+          if (column_name === "manufacture_date" && cellValue !== undefined) {
             const regex = /\d{2}/; // Regular expression to match the first two numeric symbols
             const match = regex.exec(cellValue);
             if (match) {
@@ -320,10 +324,10 @@ class NomenclatureController {
         line.nomenclature_id = "1";
 
         // validation
-        if (+line.balance < 0) {
+        if (+line.balance <= 0) {
           line.reasons.push("balance");
         }
-        if (line.date === undefined) {
+        if (line.manufacture_date === undefined) {
           line.reasons.push("manufacture_date");
         }
         if (line.reasons.length > 0) {
@@ -400,6 +404,91 @@ class NomenclatureController {
     }
   }
   ////////////////////////////////////
+  @UseRole(UserRoles.supply_manager)
+  async addResolvedRow(req: Request, res: Response, next: NextFunction) {
+    // Joi validates. See nomenclature router
+    interface IRowData {
+      balance: number;
+      manufacture_date: string;
+      nomenclature_id: number;
+      part_number: string;
+      reasons: string[];
+      supplier_id: number;
+      ignore?: any;
+      manufacturer?: string; // Brand on Front-end;
+      package?: string;
+      order_time?: string;
+      mpq?: number;
+      moq?: number;
+      price?: number; // not sure
+    }
+    const rowData: IRowData = req.body;
+    const data = await Supplier.findOne({
+      where: { id: +rowData.supplier_id },
+    });
+    if (!data) {
+      res.status(404).send("sup not found");
+      return;
+    }
+    if (data!.manager_id !== req.user.id) {
+      res.status(401).send("access denied");
+    }
+
+    // console.log works properly  You can see row in terminal
+    console.log(`rowData - ${JSON.stringify(rowData)}`);
+
+    const stock_result = StockBalance.create({
+      ...rowData,
+    });
+
+    const queryBuilderNom = Nomenclature.createQueryBuilder()
+      .insert()
+      .orIgnore()
+      .into(Nomenclature)
+      .values([{ part_number: rowData.part_number }]);
+
+    // save properly. Although FIXME nomrnclature and stock_balances should be properly chained using part_number
+    // FIXME currently part_number is only null field in stock_balances
+    // FIXME need delete id from stock_balances
+    await AppDataSource.transaction(async (transactionalEntityManager) => {
+      await stock_result.save();
+      await queryBuilderNom.execute();
+    });
+    // FIXME considering all future adjustments in DB (foreign key as part_number etc.)
+    // please note that currently if the same row is sent twice - it doesn't create a second copy
+    // in nomenclatures BUT IT DOES create a new entry in stock_balances
+
+    res.status(201).json({ data: rowData, message: "Successfully created" });
+  }
+
+  @UseRole(UserRoles.supply_manager)
+  async addDeletedRowAnalytycs(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    interface IDelRow {
+      balance?: number;
+      manufacture_date?: string;
+      nomenclature_id: number;
+      part_number: string;
+      reasons: string[];
+      supplier_id: number;
+      ignore?: any;
+      manufacturer?: string; // Brand on Front-end;
+      package?: string;
+      order_time?: string;
+      mpq?: number;
+      moq?: number;
+      price?: number; // not sure
+    }
+    const deletedRow: IDelRow = req.body;
+
+    console.log(`deleted row - ${JSON.stringify(deletedRow)}`);
+    // add logic for analytycs FIXME
+
+    res.status(201).json({ deletedRow });
+  }
 
   ////////////////////////////////////
   async deleteStocksBySup(req: Request, res: Response, next: NextFunction) {
