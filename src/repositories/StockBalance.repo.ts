@@ -12,7 +12,7 @@ type optsByById = {
     findByReplacementId?: never;
 }
 type optsByReplacementId = {
-    findByReplacementId: number,
+    findByReplacementId: string,
     findById?: never;
     findByPartNumber?: never;
 }
@@ -34,10 +34,11 @@ const StockRepository = dataSource.getRepository(StockBalance).extend({
                 const findByPartNumber = options.findByPartNumber;
                 filterByName = !findByPartNumber ? '' : ` and LOWER(nomenclatures.number) like LOWER('%${findByPartNumber}%')`;
             } else if (options.findByReplacementId) {
-                filterById = ` and nomenclature_id in (SELECT 
-replacement_id as id
+                filterById = ` and part_number in (SELECT 
+nomenclatures.number as part_number
 FROM public.replacements
-where nomenclature_id = ${options.findByReplacementId})`;
+inner join nomenclatures on replacements.nomenclature_id = nomenclatures.id
+where nomenclatures.number = '${options.findByReplacementId}' )`;
             } else if (options.findById) {
                 filterById = ` and nomenclature_id=${options.findById}`
             }
@@ -46,7 +47,6 @@ where nomenclature_id = ${options.findByReplacementId})`;
         const query = `
 with stock as (
 SELECT
-stock_balances.nomenclature_id as id,
 nomenclatures.number as part_number,
 brand,
 package,
@@ -56,22 +56,28 @@ max(price) as max_price,
 sum(stock_balances.balance) as balance
 FROM 
 stock_balances
-left join nomenclatures on nomenclatures.id = stock_balances.nomenclature_id
-GROUP BY nomenclature_id, nomenclatures.number, brand, package, manufacture_date
+left join nomenclatures on nomenclatures.number = stock_balances.part_number
+GROUP BY part_number, nomenclatures.number, brand, package, manufacture_date
 HAVING sum(stock_balances.balance) > 0 ${filterByName} ${filterById}
 ${limit} 
 ${offset}
 ),
 has_replacement as (
 SELECT 
-nomenclature_id,
+nomenclatures.number,
 true::boolean as present
 FROM public.replacements
-Group By nomenclature_id
-)
-
-SELECT
-stock.id,
+left join nomenclatures on nomenclatures.id = nomenclature_id
+Group By number
+),
+datasheetsForm as (
+SELECT 
+nomenclatures.number,
+true::boolean as present
+FROM public.datasheets
+left join nomenclatures on nomenclatures.id = nomenclature_id
+Group By number
+)SELECT
 stock.part_number,
 stock.balance,
 stock.min_price,
@@ -80,17 +86,11 @@ brand,
 package, 
 manufacture_date,
 COALESCE(has_replacement.present, false) as present,
-CASE WHEN datasheets.file_name IS NULL 
-            THEN false 
-            ELSE true 
-    END AS has_datasheet
+datasheetsForm.present AS has_datasheet
 from stock
-left join has_replacement on has_replacement.nomenclature_id = stock.id
-left join datasheets on datasheets.nomenclature_id = stock.id
-
+left join has_replacement on has_replacement.number = stock.part_number
+left join datasheetsForm on datasheetsForm.number = stock.part_number
 `;
-
-
         return this.query(query);
     },
     getPrice(stockData: Partial<OrderByNomenclature>) {

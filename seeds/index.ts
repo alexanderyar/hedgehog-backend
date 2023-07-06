@@ -136,7 +136,7 @@ const suppliers: DeepPartial<Supplier>[] = [
 
 const stockBalances :DeepPartial<StockBalance>[] = [
     {
-        nomenclature_id: 1,
+        part_number: 'ELM 327',
         supplier_id: 1,
         balance: 100,
         brand: Brands.origin,
@@ -144,7 +144,7 @@ const stockBalances :DeepPartial<StockBalance>[] = [
         manufactureDate: '11'
     },
     {
-        nomenclature_id: 1,
+        part_number: 'ELM 327',
         supplier_id: 2,
         balance: 100,
         brand: Brands.origin,
@@ -152,7 +152,7 @@ const stockBalances :DeepPartial<StockBalance>[] = [
         manufactureDate: '11'
     },
     {
-        nomenclature_id: 2,
+        part_number: 'Starship',
         supplier_id: 2,
         balance: 100,
         brand: Brands.origin,
@@ -160,14 +160,14 @@ const stockBalances :DeepPartial<StockBalance>[] = [
         manufactureDate: '11'
     },
     {
-        nomenclature_id: 3,
+        part_number: 'Starship',
         supplier_id: 2,
         balance: 100,
         brand: Brands.origin,
         package: 'asd',
         manufactureDate: '11'
     },{
-        nomenclature_id: 4,
+        part_number: 'Starship',
         supplier_id: 2,
         balance: 100,
         brand: Brands.origin,

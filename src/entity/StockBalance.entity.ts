@@ -1,13 +1,11 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {BaseEntity, Column, Entity, PrimaryColumn, PrimaryGeneratedColumn} from "typeorm";
 import Brands from "../enums/Brands";
 
 @Entity({ name: "stock_balances" })
 export default class StockBalance extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
 
-  @Column()
-  nomenclature_id: number;
+  @PrimaryColumn()
+  part_number: string;
 
   @Column()
   supplier_id: number;
@@ -15,8 +13,8 @@ export default class StockBalance extends BaseEntity {
   @Column()
   balance: number;
 
-  @Column({})
-  brand: Brands;
+  @Column()
+  brand: string;
 
   @Column({
     length: 128,
