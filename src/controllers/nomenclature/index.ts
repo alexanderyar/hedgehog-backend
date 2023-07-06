@@ -91,9 +91,9 @@ class NomenclatureController {
     next: NextFunction
   ) {
     try {
-      const id = parseInt(req.params.id);
+      const partNumber = req.params.id;
       const data = await StockRepository.findGrouped(undefined, {
-        findByReplacementId: id,
+        findByReplacementId: partNumber,
       });
       return data;
     } catch (e) {
@@ -273,7 +273,7 @@ class NomenclatureController {
       //   0: "part_number",
       //   1: "ignore",
       //   2: "balance",
-      //   3: "manufacture_date",
+      //   3: "manufactureDate",
       // };
       //////////////////////////
 
@@ -296,7 +296,7 @@ class NomenclatureController {
 
           const column_name = parsed_data[key]; // extracting value of each parsed_data
 
-          if (column_name === "manufacture_date" && cellValue !== undefined) {
+          if (column_name === "manufactureDate" && cellValue !== undefined) {
             const regex = /\d{2}/; // Regular expression to match the first two numeric symbols
             const match = regex.exec(cellValue);
             if (match) {
@@ -307,8 +307,8 @@ class NomenclatureController {
 
           line[column_name] = cellValue; // writing into (e.g.) line.part_number = NNNNNN
 
-          if (column_name === "part_number") {
-            part_numbers.push({ part_number: cellValue });
+          if (column_name === "part_number" && cellValue !== undefined) {
+            part_numbers.push({ part_number: cellValue.toString() });
           }
         }
 
@@ -320,15 +320,12 @@ class NomenclatureController {
         // addding supplier_id;
         line.supplier_id = supplier_id;
 
-        // FIXME !!!!! hardcoded nomenclature_id
-        line.nomenclature_id = "1";
-
         // validation
         if (+line.balance <= 0) {
           line.reasons.push("balance");
         }
-        if (line.manufacture_date === undefined) {
-          line.reasons.push("manufacture_date");
+        if (line.manufactureDate === undefined) {
+          line.reasons.push("manufactureDate");
         }
         if (line.reasons.length > 0) {
           failed_rows.push(line);
@@ -338,12 +335,13 @@ class NomenclatureController {
         values.push(line);
       }
 
-      if (!values || !part_numbers) {
+      if (!values.length || !part_numbers.length) {
         res.status(400).send("parsing error");
+        return;
       }
 
-      console.log(`failed_rows - ${JSON.stringify(failed_rows)}`);
-      console.log(`values - ${JSON.stringify(values)}`);
+      // console.log(`failed_rows - ${JSON.stringify(failed_rows)}`);
+      // console.log(`values - ${JSON.stringify(values)}`);
       ////////////////////////
       /////////////////////// plz leave it here for for a while
       // const workbook = await XLSX.read(file.data);
@@ -359,31 +357,31 @@ class NomenclatureController {
       // }
       ////////////////////////
 
-      // await StockBalance.createQueryBuilder()
-      //   .delete()
-      //   .from(StockBalance)
-      //   .where("supplier_id = :supplier_id", { supplier_id })
-      //   .execute();
+      await StockBalance.createQueryBuilder()
+        .delete()
+        .from(StockBalance)
+        .where("supplier_id = :supplier_id", { supplier_id })
+        .execute();
 
-      // const queryBuilderNom = Nomenclature.createQueryBuilder()
-      //   .insert()
-      //   .orIgnore()
-      //   .into(Nomenclature)
-      //   .values(part_numbers);
+      const queryBuilderNom = Nomenclature.createQueryBuilder()
+        .insert()
+        .orIgnore()
+        .into(Nomenclature)
+        .values(part_numbers);
 
-      // // await queryBuilderNom.execute();
+      // await queryBuilderNom.execute();
 
-      // const queryBuilder = StockBalance.createQueryBuilder()
-      //   .insert()
-      //   .into(StockBalance)
-      //   .values(values);
+      const queryBuilder = StockBalance.createQueryBuilder()
+        .insert()
+        .into(StockBalance)
+        .values(values);
 
-      // // await queryBuilder.execute();
+      // await queryBuilder.execute();
 
-      // await AppDataSource.transaction(async (transactionalEntityManager) => {
-      //   await queryBuilderNom.execute();
-      //   await queryBuilder.execute();
-      // });
+      await AppDataSource.transaction(async (transactionalEntityManager) => {
+        await queryBuilderNom.execute();
+        await queryBuilder.execute();
+      });
 
       if (failed_rows.length > 0) {
         res.status(207).json({
@@ -409,7 +407,7 @@ class NomenclatureController {
     // Joi validates. See nomenclature router
     interface IRowData {
       balance: number;
-      manufacture_date: string;
+      manufactureDate: string;
       nomenclature_id: number;
       part_number: string;
       reasons: string[];
@@ -469,7 +467,7 @@ class NomenclatureController {
   ) {
     interface IDelRow {
       balance?: number;
-      manufacture_date?: string;
+      manufactureDate?: string;
       nomenclature_id: number;
       part_number: string;
       reasons: string[];
