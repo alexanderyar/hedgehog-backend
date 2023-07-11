@@ -53,7 +53,7 @@ class ClientsController {
             }
         }
 
-        const shipInfo = await ShipIfo.find({where: { client_id: req.params.id}});
+        const shipInfo = await ShipIfo.find({where: { client_id: req.params.id, deleted: false}});
         res.send(shipInfo);
     }
 
@@ -80,13 +80,13 @@ class ClientsController {
             res.sendStatus(200)
             return;
         }
-        const datasheet = Contract.create({
+        const contract = Contract.create({
             client_id: req.params.id,
             file_name: file.name,
             file: file.data
         });
 
-        await datasheet.save();
+        await contract.save();
         res.sendStatus(201);
     }
     @UseRole([UserRoles.sales_manager, UserRoles.customer])
@@ -118,25 +118,18 @@ class ClientsController {
         const client_id = req.user.client_id;
 
         const client = await Client.findOne({
-            where: { id: client_id },
-            relations: ['ship_infos']
+            where: { id: client_id }
         });
-
-        if (!shipId) {
-            if(client?.ship_infos.length === 1) {
-                shipId = client?.ship_infos[0];
-            } else {
-                return res.status(400).send({message: 'wrong shipId'});
-            }
-        }
 
         const address = client!.address;
         const ceo_name = client!.ceo_name;
-        const shipInfos = client!.ship_infos
+        const type = client!.type;
+        // const shipInfos = client!.ship_infos
 
         const info = [
             { address },
             { ceo_name },
+            { type },
         ];
 
         info.map((item) => {
@@ -147,36 +140,36 @@ class ClientsController {
             }
         });
 
-        if(shipInfos.length === 0) {
-            absent_info.push('bank_info')
-            absent_info.push('bill_to')
-            absent_info.push('ship_to')
-        } else {
-            let hasBankInfo = false;
-            let hasBillToInfo = false;
-            let hasShipToInfo = false;
-
-            shipInfos.forEach(info => {
-                if (info.bank_info) {
-                    hasBankInfo = true
-                }
-                if (info.bill_to) {
-                    hasBillToInfo = true
-                }
-                if (info.ship_to) {
-                    hasShipToInfo = true
-                }
-            })
-            if (!hasBankInfo) {
-                absent_info.push('bank_info')
-            }
-            if (!hasBillToInfo) {
-                absent_info.push('bill_to')
-            }
-            if (!hasShipToInfo) {
-                absent_info.push('ship_to')
-            }
-        }
+        // if(shipInfos.length === 0) {
+        //     absent_info.push('bank_info')
+        //     absent_info.push('bill_to')
+        //     absent_info.push('ship_to')
+        // } else {
+        //     let hasBankInfo = false;
+        //     let hasBillToInfo = false;
+        //     let hasShipToInfo = false;
+        //
+        //     shipInfos.forEach(info => {
+        //         if (info.bank_info) {
+        //             hasBankInfo = true
+        //         }
+        //         if (info.bill_to) {
+        //             hasBillToInfo = true
+        //         }
+        //         if (info.ship_to) {
+        //             hasShipToInfo = true
+        //         }
+        //     })
+        //     if (!hasBankInfo) {
+        //         absent_info.push('bank_info')
+        //     }
+        //     if (!hasBillToInfo) {
+        //         absent_info.push('bill_to')
+        //     }
+        //     if (!hasShipToInfo) {
+        //         absent_info.push('ship_to')
+        //     }
+        // }
 
         if (absent_info.length > 0) {
             return res.status(400).json({
@@ -184,46 +177,85 @@ class ClientsController {
             });
         }
 
-        await AppDataSource.transaction(async (transactionEntityManager) => {
+        const queryRunner = AppDataSource.createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
 
-            const result = Order.create({
-                client_id: user.client_id,
-                ship_id: shipId,
-                // FIXME add comment text
-                status: OrderStatusesMap.get(OrderStatuses.created),
-            });
-            await transactionEntityManager.save(result);
-
-
-            const new_data = data.cartData.map((item: Partial<OrderByNomenclature>) => {
-                return OrderByNomenclature.create({
-                    order_id: result.id,
-                    nomenclature_id: item.nomenclature_id,
-                    package: item.package,
-                    quantity: item.quantity,
-                })
-
-            });
-            await transactionEntityManager.save(new_data);
+        const result = Order.create({
+            client_id: user.client_id,
+            ship_id: shipId,
+            // FIXME add comment text
+            status: OrderStatusesMap.get(OrderStatuses.created),
         });
+        try {
+            await queryRunner.manager.save(result)
+        } catch (e) {
+            await queryRunner.rollbackTransaction()
+            return next(e);
+        }
+
+
+        const new_data = data.cartData.map((item: Partial<OrderByNomenclature>) => {
+            return OrderByNomenclature.create({
+                order_id: result.id,
+                part_number: item.part_number,
+                nomenclature_id: item.nomenclature_id,
+                package: item.package,
+                quantity: item.quantity,
+            })
+        });
+
+        try {
+            await queryRunner.manager.save(new_data)
+            await queryRunner.commitTransaction();
+        } catch (e) {
+            await queryRunner.rollbackTransaction()
+            return next(e);
+        } finally {
+            await queryRunner.release()
+        }
+
+
+        // await AppDataSource.transaction(async (transactionEntityManager) => {
+        //
+        //     const result = Order.create({
+        //         client_id: user.client_id,
+        //         ship_id: shipId,
+        //         // FIXME add comment text
+        //         status: OrderStatusesMap.get(OrderStatuses.created),
+        //     });
+        //     await transactionEntityManager.save(result);
+        //
+        //
+        //     const new_data = data.cartData.map((item: Partial<OrderByNomenclature>) => {
+        //         return OrderByNomenclature.create({
+        //             order_id: result.id,
+        //             part_number: item.part_number,
+        //             nomenclature_id: item.nomenclature_id,
+        //             package: item.package,
+        //             quantity: item.quantity,
+        //         })
+        //
+        //     });
+        //     try {
+        //         await transactionEntityManager.save(new_data);
+        //     } catch (e) {
+        //         // transactionEntityManager.re
+        //         return next(e)
+        //     }
+        // });
 
         res.status(204).json({
             message: "the order has been submitted successfully ",
         });
     }
-    async clientsAddInfo (req: Request<{clientId: number, contractId: number}>, res:Response, next: NextFunction) {
+
+    async addBankInfo(req: Request<{clientId: number, contractId: number}>, res:Response, next: NextFunction) {
         const info = req.body;
 
         const client_id = req.user.client_id;
 
-        if (info.address || info.ceoName) {
-            await Client.update(client_id!, {
-                address: info.address,
-                ceo_name: info.ceoName,
-            });
-        }
-
-        if (info.bankInfo || info.billTo || info.shipTo) {
+        if (info.bankInfo && info.billTo && info.shipTo) {
             const shipInfo = ShipIfo.create({
                 client_id,
                 bank_info: info.bankInfo,
@@ -231,14 +263,58 @@ class ClientsController {
                 ship_to: info.shipTo
             })
             await shipInfo.save();
+            res.status(200).json({
+                message: "Successfully updated",
+                shipInfo,
+            });
+        } else {
+            res.status(400).json({
+                message: 'Missing required fields'
+            })
         }
-
-        res.status(200).json({
-            message: "Successfully updated",
-            info,
-        });
     }
 
+    @ParsePathParams([{param: 'clientId', type: 'number'}])
+    async clientsAddInfo (req: Request<{clientId: number}>, res:Response, next: NextFunction) {
+        const info = req.body;
+
+        const client_id = req.user.role === UserRoles.customer ? req.user.client_id : req.params.clientId;
+        if (info.address || info.ceo_name || info.company_name || info.type) {
+            const dataToUpdate:Record<any, any> = {};
+
+            for (let key in info) {
+                if(!info[key]) continue;
+                dataToUpdate[key] = info[key];
+            }
+            await Client.update(client_id!, dataToUpdate);
+            res.status(200).json({
+                message: "Successfully updated",
+                info,
+            });
+        } else {
+            res.status(400).json({
+                message: "Missing required fields",
+            });
+        }
+    }
+
+    @ParsePathParams([{param: 'clientId', type: 'number'}, {param: 'shipId', type: 'number'}])
+    async deleteShipId(req: Request<{clientId: number, shipId: number}>, res:Response, next: NextFunction) {
+        const client_id = req.user.role === UserRoles.customer ? req.user.client_id : req.params.clientId;
+        const {affected} = await ShipIfo.update({
+                client_id: client_id as number,
+                id: req.params.shipId
+            },
+            {
+                deleted: true
+            }
+        )
+        if(affected) {
+            res.sendStatus(200)
+        } else {
+            res.sendStatus(404)
+        }
+    }
 }
 
 export default new ClientsController();

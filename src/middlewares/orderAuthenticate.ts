@@ -14,13 +14,13 @@ export const orderAuthenticate = async (
 ) => {
   // if this POST goes NOT from current user - no access
   try {
-    const { client_id } = req.params;
+    const { clientId } = req.params;
     const { id } = req.user;
     const client = await Client.findOne({
       where: { user_id: id },
     });
 
-    if (+client_id !== client!.id) {
+    if (+clientId !== client!.id) {
       throw new Unauthorized("Not the order owner");
     }
 

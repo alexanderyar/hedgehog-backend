@@ -1,4 +1,13 @@
-import {BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {
+    BaseEntity,
+    BeforeInsert,
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    VirtualColumn
+} from "typeorm";
 import Order from "./Order.entity";
 import Nomenclature from "./Nomenclature.enity";
 import StockRepository from "../repositories/StockBalance.repo";
@@ -38,6 +47,8 @@ export default class OrderByNomenclature extends BaseEntity {
     @ManyToOne(() => Nomenclature)
     @JoinColumn({name: 'nomenclature_id'})
     nomenclature: Nomenclature;
+
+    part_number: string;
 
     @BeforeInsert()
     async addPrice() {

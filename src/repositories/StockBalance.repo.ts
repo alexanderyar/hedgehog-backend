@@ -47,6 +47,7 @@ where nomenclatures.number = '${options.findByReplacementId}' )`;
         const query = `
 with stock as (
 SELECT
+nomenclatures.id as nomenclature_id,
 nomenclatures.number as part_number,
 brand,
 package,
@@ -78,6 +79,7 @@ FROM public.datasheets
 left join nomenclatures on nomenclatures.id = nomenclature_id
 Group By number
 )SELECT
+stock.nomenclature_id,
 stock.part_number,
 stock.balance,
 stock.min_price,
@@ -96,7 +98,8 @@ left join datasheetsForm on datasheetsForm.number = stock.part_number
     getPrice(stockData: Partial<OrderByNomenclature>) {
         const query = `
         SELECT
-nomenclature_id as id,
+nomenclatures.id as id,
+part_number,
 brand,
 package,
 manufacture_date,
@@ -105,8 +108,10 @@ max(price) as max_price,
 sum(balance) as balance
 FROM 
 stock_balances
-where nomenclature_id=$1
-GROUP BY nomenclature_id, brand, package, manufacture_date
+inner join nomenclatures on nomenclatures.number = stock_balances.part_number
+where id=$1
+GROUP BY id, part_number, brand, package, manufacture_date
+
 `
         return this.query(query, [stockData.nomenclature_id])
     },

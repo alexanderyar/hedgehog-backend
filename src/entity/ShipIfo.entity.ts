@@ -18,6 +18,9 @@ export default class ShipIfo extends BaseEntity{
     @Column()
     ship_to: string;
 
+    @Column()
+    deleted: boolean;
+
     @ManyToOne(()=> Client, (client)=> client.ship_infos)
     @JoinColumn({name:'client_id'})
     client: Client;
