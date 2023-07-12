@@ -18,8 +18,11 @@ import ShipIfo from "../../entity/ShipIfo.entity";
 class ClientsController {
     @UseRole(UserRoles.sales_manager)
     async getAllClients(req: Request, res:Response, next: NextFunction) {
+        const where = req.user.role === UserRoles.admin ? {} : {
+            manager_id: req.user.id
+        }
         const clients = await Client.find({
-            where: {manager_id: req.user.id},
+            where: where,
             relations: ['orders']
         });
         res.json(clients)

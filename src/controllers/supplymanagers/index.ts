@@ -1,17 +1,11 @@
-import { RequestHandler } from "express";
-import { NextFunction, Request, Response } from "express";
+import {Request, Response} from "express";
 
 import UserRoles from "../../enums/UserRoles";
-import Client from "../../entity/Client.entity";
-import ordersRepo from "../../repositories/Orders.repo";
-import Order from "../../entity/Order.entity";
 import UseRole from "../../decorators/UseRole";
 import ParsePathParams from "../../decorators/ParsePathParams";
-import OrderStatuses from "../../enums/OrderStatuses";
-import OrderByNomenclature from "../../entity/OrderByNomenclature.entity";
-import { User } from "../../entity/User.entity";
+import {User} from "../../entity/User.entity";
 import Supplier from "../../entity/Suppliers.entity";
-import { Unauthorized } from "http-errors";
+import SupplierRepo from "../../repositories/Supplier.repo";
 
 class SupplyManagersController {
   @UseRole([UserRoles.supply_manager])
@@ -25,7 +19,6 @@ class SupplyManagersController {
       return;
     }
     const new_sup_info = req.body;
-    console.log(new_sup_info);
 
     //   0003CNYMS
 
@@ -54,39 +47,29 @@ class SupplyManagersController {
 
   @UseRole([UserRoles.supply_manager])
   async getSupInfo(req: Request, res: Response) {
-    const result = await User.findOne({
-      where: {
-        id: req.user.id,
-      },
-    });
-    if (!result) {
-      throw new Unauthorized("Access denied");
-    }
-
-    const supinfo = await Supplier.find({
-      where: { manager_id: req.user.id },
+    const whereOption = req.user.role === UserRoles.admin ? {} : { manager_id: req.user.id }
+    const supInfo = await Supplier.find({
+      where: whereOption,
     });
 
-    res.status(200).json({
-      supinfo,
-    });
+    res.status(200).json(supInfo);
   }
+
   @UseRole([UserRoles.supply_manager])
   @ParsePathParams([{ param: "supplier_id", type: "number" }])
   async editSup(req: Request<{ supplier_id: number }>, res: Response) {
     const { supplier_id } = req.params;
-    const result = await User.findOne({
-      where: {
-        id: req.user.id,
-      },
-    });
-    if (!result) {
-      throw new Unauthorized("Access denied");
-    }
     const info_to_update = req.body;
 
+    if (req.user.role !== UserRoles) {
+      if (supplier_id !== info_to_update.id) {
+        return res.sendStatus(401);
+      }
+    }
+
+
     const data = await Supplier.findOne({
-      where: { id: +info_to_update.id },
+      where: { id: info_to_update.id },
     });
     if (!data) {
       res.status(404).send("sup not found");
@@ -107,19 +90,14 @@ class SupplyManagersController {
   ])
   async getSupById(req: Request<{ supplier_id: number }>, res: Response) {
     const { supplier_id } = req.params;
-
-    const result = await User.findOne({
-      where: {
-        id: req.user.id,
-      },
-    });
-    if (!result) {
-      throw new Unauthorized("Access denied");
+    const where = req.user.role === UserRoles.admin ? {} : {
+      manager_id: req.user.id,
     }
+
     const sup = await Supplier.findOne({
       where: {
-        id: +supplier_id,
-        manager_id: req.user.id,
+        id: supplier_id,
+        ...where
       },
     });
     if (!sup) {
@@ -127,6 +105,20 @@ class SupplyManagersController {
     }
 
     res.status(200).json({ sup });
+  }
+
+  @UseRole([UserRoles.supply_manager])
+  async getSuppliers (req: Request, res:Response) {
+
+    const where = req.user.role === UserRoles.admin ? {} : {
+      manager_id: req.user.id,
+    }
+
+    const data = await Supplier.find({
+      where
+    })
+    const formatted_data = data.map((obj: any) => obj.formatted_id);
+    res.status(200).json(formatted_data);
   }
 }
 export default new SupplyManagersController();

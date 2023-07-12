@@ -21,6 +21,11 @@ class OrdersController {
         } else if (req.user.role === UserRoles.sales_manager) {
             const orders = await ordersRepo.getOrdersOfClients(req.user.id);
             res.send(orders);
+        } else if(req.user.role === UserRoles.admin) {
+            const orders = await ordersRepo.getOrdersOfClients(undefined, req.user.role);
+            res.send(orders);
+        } else {
+            res.sendStatus(401);
         }
     }
 

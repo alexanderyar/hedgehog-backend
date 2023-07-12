@@ -1,5 +1,6 @@
 import dataSource from "../dataSource";
 import Order from "../entity/Order.entity";
+import UserRoles from "../enums/UserRoles";
 
 const OrdersRepo = dataSource.getRepository(Order).extend({
   async getOrdersWithPriceByClient(clientId: number) {
@@ -38,13 +39,13 @@ left join order_prices on order_id = id;`;
   },
   /////////////////////////////
   /////////////////////////////
-  async getOrdersOfClients(managerId: number) {
+  async getOrdersOfClients(managerId?: number, userRole: UserRoles | '' = '') {
     const query = `WITH 
 clients_orders as (
 Select order_id, 
 sum(COALESCE(approved_price, price) * quantity) as price
 from order_by_nomenclature
-where order_id in (select id from orders where client_id in (Select id from clients where manager_id = $1))
+where order_id in (select id from orders where client_id in (Select id from clients where manager_id = $1 or $2))
 group by order_id
 )
 Select 
@@ -56,7 +57,7 @@ clients.formatted_id
 From orders
 left join clients_orders on order_id = id
 JOIN clients ON orders.client_id = clients.id;`;
-    return await this.query(query, [managerId]);
+    return await this.query(query, [managerId, UserRoles.admin === userRole]);
   },
 });
 
